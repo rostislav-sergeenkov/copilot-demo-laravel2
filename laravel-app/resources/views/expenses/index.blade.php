@@ -1,6 +1,18 @@
 @extends('layouts.app')
 @section('content')
-    <h1>Daily Expenses</h1>
+    <h1>Expenses</h1>
+    <form method="GET" action="{{ route('expenses.index') }}" class="mb-3">
+        <label for="category">Filter by Category:</label>
+        <select name="category" id="category" onchange="this.form.submit()">
+            <option value="">All</option>
+            @foreach($categories as $cat)
+                <option value="{{ $cat }}" @if($category === $cat) selected @endif>{{ $cat }}</option>
+            @endforeach
+        </select>
+        <noscript><button type="submit">Apply</button></noscript>
+    </form>
+    <a href="{{ route('expenses.export.monthly', ['category' => $category]) }}" class="btn btn-sm btn-secondary mb-3">Export Monthly CSV</a>
+    <h2>Daily Expenses</h2>
     <table>
         <thead>
             <tr>
@@ -30,7 +42,7 @@
             @endforeach
         </tbody>
     </table>
-    <h1>Monthly Expenses</h1>
+    <h2>Monthly Expenses</h2>
     <table>
         <thead>
             <tr>

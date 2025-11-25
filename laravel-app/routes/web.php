@@ -10,3 +10,4 @@ Route::get('/', function () {
 });
 
 Route::resource('expenses', ExpenseController::class);
+Route::get('expenses/export/monthly-csv', [ExpenseController::class, 'exportMonthlyCsv'])->name('expenses.export.monthly');
