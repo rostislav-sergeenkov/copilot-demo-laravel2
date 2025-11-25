@@ -49,22 +49,23 @@ class ExpenseController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
+        // Build CSV into a temp memory stream so tests can assert content.
         $columns = ['Description', 'Amount', 'Category', 'Date'];
-        $callback = function () use ($monthlyExpenses, $columns) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, $columns);
-            foreach ($monthlyExpenses as $expense) {
-                fputcsv($handle, [
-                    $expense->description,
-                    $expense->amount,
-                    $expense->category,
-                    $expense->date,
-                ]);
-            }
-            fclose($handle);
-        };
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, $columns);
+        foreach ($monthlyExpenses as $expense) {
+            fputcsv($handle, [
+                $expense->description,
+                $expense->amount,
+                $expense->category,
+                $expense->date,
+            ]);
+        }
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
 
-        return response()->stream($callback, 200, $headers);
+        return response($csv, 200, $headers);
     }
     /**
      * Show the form for creating a new expense.

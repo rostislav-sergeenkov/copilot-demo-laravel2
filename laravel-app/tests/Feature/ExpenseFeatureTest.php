@@ -55,7 +55,7 @@ class ExpenseFeatureTest extends TestCase
 
         $response = $this->get('/expenses/export/monthly-csv');
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/csv');
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
         $response->assertSee('Shoes');
     }
 }
