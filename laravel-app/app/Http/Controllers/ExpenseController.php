@@ -71,7 +71,16 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        return view('expenses.create');
+        $categories = [
+            'Groceries',
+            'Transport',
+            'Housing and Utilities',
+            'Restaurants and Cafes',
+            'Health and Medicine',
+            'Clothing & Footwear',
+            'Entertainment',
+        ];
+        return view('expenses.create', compact('categories'));
     }
 
     /**
@@ -94,7 +103,16 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        return view('expenses.edit', compact('expense'));
+        $categories = [
+            'Groceries',
+            'Transport',
+            'Housing and Utilities',
+            'Restaurants and Cafes',
+            'Health and Medicine',
+            'Clothing & Footwear',
+            'Entertainment',
+        ];
+        return view('expenses.edit', compact('expense', 'categories'));
     }
 
     /**

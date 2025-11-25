@@ -116,6 +116,11 @@
                                 Deploy now
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('expenses.index') }}" class="inline-block dark:bg-[#3E3E3A] dark:border-[#3E3E3A] dark:text-[#EDEDEC] hover:bg-black hover:border-black px-5 py-1.5 bg-[#dbdbd7] rounded-sm border border-[#19140035] text-sm leading-normal">
+                                View Expenses
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <div class="bg-[#fff2f2] dark:bg-[#1D0002] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/376] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden">
