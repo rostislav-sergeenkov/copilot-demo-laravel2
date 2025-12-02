@@ -5,22 +5,93 @@
 @section('content')
 <div class="page-header">
     <h1 class="page-title">Expenses</h1>
-    <a href="{{ route('expenses.create') }}" class="btn btn-primary">
-        <span class="material-icons">add</span>
-        Add Expense
-    </a>
+    <div class="page-header-actions">
+        <a href="{{ route('expenses.daily') }}" class="btn btn-secondary btn-sm">
+            <span class="material-icons">today</span>
+            Daily
+        </a>
+        <a href="{{ route('expenses.monthly') }}" class="btn btn-secondary btn-sm">
+            <span class="material-icons">calendar_month</span>
+            Monthly
+        </a>
+        <a href="{{ route('expenses.create') }}" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            Add Expense
+        </a>
+    </div>
 </div>
+
+<!-- Category Filter -->
+<div class="filter-bar card">
+    <div class="filter-group">
+        <label for="categoryFilter" class="filter-label">
+            <span class="material-icons">filter_list</span>
+            Filter by Category:
+        </label>
+        <form method="GET" action="{{ route('expenses.index') }}" class="filter-form">
+            <select name="category" id="categoryFilter" class="form-control filter-select" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category }}" {{ $selectedCategory === $category ? 'selected' : '' }}>
+                        {{ $category }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+        @if($selectedCategory)
+            <a href="{{ route('expenses.index') }}" 
+               class="btn btn-text btn-sm filter-clear"
+               title="Clear filter">
+                <span class="material-icons">close</span>
+                Clear
+            </a>
+        @endif
+    </div>
+    @if($selectedCategory)
+        <div class="active-filter-indicator">
+            <span class="material-icons">filter_alt</span>
+            Showing: <strong>{{ $selectedCategory }}</strong>
+        </div>
+    @endif
+</div>
+
+<!-- Summary Card -->
+@if($expenses->isNotEmpty())
+<div class="summary-card card">
+    <div class="summary-content">
+        <div class="summary-main">
+            <span class="summary-label">Total</span>
+            <span class="summary-value">${{ number_format($total, 2) }}</span>
+        </div>
+        <div class="summary-meta">
+            <span class="summary-count">{{ $expenses->total() }} expense{{ $expenses->total() !== 1 ? 's' : '' }}</span>
+            @if($selectedCategory)
+                <span class="summary-filter">in {{ $selectedCategory }}</span>
+            @endif
+        </div>
+    </div>
+</div>
+@endif
 
 <div class="card">
     @if($expenses->isEmpty())
         <div class="empty-state">
             <span class="material-icons empty-state-icon">receipt_long</span>
-            <h2 class="empty-state-title">No expenses yet</h2>
-            <p class="empty-state-message">Start tracking your spending by adding your first expense.</p>
-            <a href="{{ route('expenses.create') }}" class="btn btn-primary">
-                <span class="material-icons">add</span>
-                Add Your First Expense
-            </a>
+            @if($selectedCategory)
+                <h2 class="empty-state-title">No {{ $selectedCategory }} expenses</h2>
+                <p class="empty-state-message">No expenses found in this category.</p>
+                <a href="{{ route('expenses.index') }}" class="btn btn-secondary">
+                    <span class="material-icons">clear_all</span>
+                    View All Expenses
+                </a>
+            @else
+                <h2 class="empty-state-title">No expenses yet</h2>
+                <p class="empty-state-message">Start tracking your spending by adding your first expense.</p>
+                <a href="{{ route('expenses.create') }}" class="btn btn-primary">
+                    <span class="material-icons">add</span>
+                    Add Your First Expense
+                </a>
+            @endif
         </div>
     @else
         <div class="table-container">

@@ -26,6 +26,23 @@
                 <span class="material-icons">account_balance_wallet</span>
                 <span class="app-title">Expense Tracker</span>
             </a>
+            <nav class="header-nav">
+                <a href="{{ route('expenses.index') }}" 
+                   class="nav-link {{ request()->routeIs('expenses.index') ? 'active' : '' }}">
+                    <span class="material-icons">list</span>
+                    <span class="nav-text">All</span>
+                </a>
+                <a href="{{ route('expenses.daily') }}" 
+                   class="nav-link {{ request()->routeIs('expenses.daily') ? 'active' : '' }}">
+                    <span class="material-icons">today</span>
+                    <span class="nav-text">Daily</span>
+                </a>
+                <a href="{{ route('expenses.monthly') }}" 
+                   class="nav-link {{ request()->routeIs('expenses.monthly') ? 'active' : '' }}">
+                    <span class="material-icons">calendar_month</span>
+                    <span class="nav-text">Monthly</span>
+                </a>
+            </nav>
         </div>
     </header>
 
