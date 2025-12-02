@@ -179,6 +179,39 @@ p {
     font-size: 28px;
 }
 
+/* Header Navigation */
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+    color: var(--text-on-primary);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: var(--text-on-primary);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-link .material-icons {
+    font-size: 20px;
+}
+
 /* ============================================
    Footer
    ============================================ */
@@ -774,6 +807,7 @@ textarea.form-control {
 @media (max-width: 768px) {
     .header-content {
         padding: var(--spacing-sm) var(--spacing-md);
+        flex-wrap: wrap;
     }
     
     .app-title {
@@ -869,5 +903,553 @@ textarea.form-control {
     .card {
         box-shadow: none;
         border: 1px solid #ddd;
+    }
+}
+
+/* ============================================
+   Page Header Actions
+   ============================================ */
+.page-header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   Date Navigation
+   ============================================ */
+.date-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.date-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.date-nav-btn:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-primary);
+}
+
+.date-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 200px;
+}
+
+.date-weekday {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.date-full {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.month-display {
+    font-size: 1.5rem;
+}
+
+.date-picker-form {
+    margin-left: auto;
+}
+
+.date-picker-input {
+    width: auto;
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+}
+
+/* ============================================
+   Filter Bar
+   ============================================ */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-label .material-icons {
+    font-size: 20px;
+}
+
+.filter-form {
+    display: flex;
+    align-items: center;
+}
+
+.filter-select {
+    width: auto;
+    min-width: 180px;
+    padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm) var(--spacing-md);
+}
+
+.filter-clear {
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.active-filter-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.active-filter-indicator .material-icons {
+    font-size: 16px;
+}
+
+/* ============================================
+   Summary Card
+   ============================================ */
+.summary-card {
+    margin-bottom: var(--spacing-md);
+}
+
+.summary-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.summary-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-value {
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.summary-value-large {
+    font-size: 2.5rem;
+}
+
+.summary-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.summary-count {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.summary-filter {
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+}
+
+/* ============================================
+   Expense List (Daily View)
+   ============================================ */
+.expense-list {
+    padding: 0;
+}
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color var(--transition-fast);
+}
+
+.expense-item:last-child {
+    border-bottom: none;
+}
+
+.expense-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.expense-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.expense-description {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.expense-amount {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.expense-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* ============================================
+   Breakdown List
+   ============================================ */
+.breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-category {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.breakdown-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.breakdown-amount {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ============================================
+   Category Breakdown Grid (Monthly View)
+   ============================================ */
+.category-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.category-breakdown-item {
+    padding: var(--spacing-md);
+    background-color: var(--surface-variant);
+    border-radius: var(--radius-md);
+}
+
+.category-breakdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.category-percentage {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-breakdown-bar {
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+}
+
+.category-breakdown-progress {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width var(--transition-normal);
+}
+
+/* Category progress bar colors */
+.category-breakdown-progress.groceries { background-color: #4CAF50; }
+.category-breakdown-progress.transport { background-color: #2196F3; }
+.category-breakdown-progress.housing-and-utilities { background-color: #FF9800; }
+.category-breakdown-progress.restaurants-and-cafes { background-color: #E91E63; }
+.category-breakdown-progress.health-and-medicine { background-color: #9C27B0; }
+.category-breakdown-progress.clothing-footwear { background-color: #009688; }
+.category-breakdown-progress.entertainment { background-color: #FFC107; }
+
+.category-breakdown-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-amount {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   Daily Breakdown List (Monthly View)
+   ============================================ */
+.daily-breakdown-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.daily-breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    transition: background-color var(--transition-fast);
+}
+
+.daily-breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.daily-breakdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--text-primary);
+}
+
+.daily-breakdown-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 48px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+    border-radius: var(--radius-sm);
+}
+
+.daily-date-day {
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.daily-date-weekday {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.daily-breakdown-info {
+    flex: 1;
+}
+
+.daily-expense-count {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.daily-breakdown-amount {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.daily-breakdown-arrow {
+    color: var(--text-disabled);
+}
+
+/* ============================================
+   View Navigation
+   ============================================ */
+.view-navigation {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   Card Title with Icon
+   ============================================ */
+.card-title .material-icons {
+    vertical-align: middle;
+    margin-right: var(--spacing-xs);
+    font-size: 20px;
+}
+
+/* ============================================
+   Responsive Adjustments for New Components
+   ============================================ */
+@media (max-width: 768px) {
+    .header-nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: var(--spacing-sm);
+        padding-top: var(--spacing-sm);
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .nav-link {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .nav-text {
+        display: none;
+    }
+    
+    .page-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .date-navigation {
+        flex-wrap: wrap;
+        padding: var(--spacing-md);
+    }
+    
+    .date-display {
+        min-width: auto;
+        order: -1;
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .date-picker-form {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .date-picker-input {
+        width: 100%;
+    }
+    
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+    
+    .summary-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .summary-meta {
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .expense-item {
+        flex-wrap: wrap;
+    }
+    
+    .expense-amount {
+        order: -1;
+        width: 100%;
+        text-align: right;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .category-breakdown-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .daily-breakdown-item {
+        padding: var(--spacing-sm);
+    }
+    
+    .view-navigation {
+        flex-direction: column;
+    }
+    
+    .view-navigation .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .date-full {
+        font-size: 1rem;
+    }
+    
+    .month-display {
+        font-size: 1.25rem;
+    }
+    
+    .summary-value {
+        font-size: 1.5rem;
+    }
+    
+    .summary-value-large {
+        font-size: 2rem;
     }
 }
