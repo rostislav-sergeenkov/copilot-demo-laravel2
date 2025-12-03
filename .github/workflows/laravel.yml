@@ -37,6 +37,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
+      - name: Create Required Directories
+        run: mkdir -p bootstrap/cache storage/framework/{sessions,views,cache}
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
