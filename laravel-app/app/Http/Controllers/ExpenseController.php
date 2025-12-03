@@ -28,6 +28,7 @@ class ExpenseController extends Controller
         if ($category && in_array($category, Expense::CATEGORIES)) {
             $query->where('category', $category);
         }
+
         return $query;
     }
 
@@ -37,14 +38,14 @@ class ExpenseController extends Controller
     public function index(Request $request): View
     {
         $category = $request->query('category');
-        
+
         $query = Expense::orderBy('date', 'desc')
             ->orderBy('created_at', 'desc');
-        
+
         $this->applyCategoryFilter($query, $category);
-        
+
         $expenses = $query->paginate(15)->withQueryString();
-        
+
         // Calculate total for filtered results
         $totalQuery = Expense::query();
         $this->applyCategoryFilter($totalQuery, $category);
@@ -63,22 +64,22 @@ class ExpenseController extends Controller
      */
     public function daily(Request $request): View
     {
-        $date = $request->query('date') 
-            ? Carbon::parse($request->query('date')) 
+        $date = $request->query('date')
+            ? Carbon::parse($request->query('date'))
             : Carbon::today();
-        
+
         $category = $request->query('category');
-        
+
         $query = Expense::whereDate('date', $date)
             ->orderBy('created_at', 'desc');
-        
+
         $this->applyCategoryFilter($query, $category);
-        
+
         $expenses = $query->get();
-        
+
         // Calculate daily total
         $dailyTotal = $expenses->sum('amount');
-        
+
         // Group by category for breakdown
         $categoryBreakdown = $expenses->groupBy('category')->map(function ($items) {
             return [
@@ -86,7 +87,7 @@ class ExpenseController extends Controller
                 'count' => $items->count(),
             ];
         });
-        
+
         return view('expenses.daily', [
             'expenses' => $expenses,
             'date' => $date,
@@ -102,36 +103,37 @@ class ExpenseController extends Controller
      */
     public function monthly(Request $request): View
     {
-        $month = $request->query('month') 
-            ? Carbon::parse($request->query('month') . '-01') 
+        $month = $request->query('month')
+            ? Carbon::parse($request->query('month').'-01')
             : Carbon::today()->startOfMonth();
-        
+
         $category = $request->query('category');
-        
+
         $startOfMonth = $month->copy()->startOfMonth();
         $endOfMonth = $month->copy()->endOfMonth();
-        
+
         $query = Expense::whereBetween('date', [$startOfMonth, $endOfMonth])
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc');
-        
+
         $this->applyCategoryFilter($query, $category);
-        
+
         $expenses = $query->get();
-        
+
         // Calculate monthly total
         $monthlyTotal = $expenses->sum('amount');
-        
+
         // Category breakdown with percentages
         $categoryBreakdown = $expenses->groupBy('category')->map(function ($items) use ($monthlyTotal) {
             $total = $items->sum('amount');
+
             return [
                 'total' => $total,
                 'count' => $items->count(),
                 'percentage' => $monthlyTotal > 0 ? round(($total / $monthlyTotal) * 100, 1) : 0,
             ];
         })->sortByDesc('total');
-        
+
         // Daily breakdown
         $dailyBreakdown = $expenses->groupBy(function ($expense) {
             return $expense->date->format('Y-m-d');
@@ -144,7 +146,7 @@ class ExpenseController extends Controller
         })->sortByDesc(function ($item) {
             return $item['date'];
         });
-        
+
         return view('expenses.monthly', [
             'expenses' => $expenses,
             'month' => $month,

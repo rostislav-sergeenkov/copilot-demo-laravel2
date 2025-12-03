@@ -25,7 +25,7 @@ class UpdateExpenseRequest extends FormRequest
         return [
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
-            'category' => ['required', 'string', 'in:' . implode(',', Expense::CATEGORIES)],
+            'category' => ['required', 'string', 'in:'.implode(',', Expense::CATEGORIES)],
             'date' => ['required', 'date', 'before_or_equal:today'],
         ];
     }

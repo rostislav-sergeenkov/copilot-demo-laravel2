@@ -101,20 +101,20 @@ class ExpenseSeeder extends Seeder
         // Generate expenses for the last 3 months
         foreach (Expense::CATEGORIES as $category) {
             $categoryDescriptions = $this->descriptions[$category];
-            
+
             // Generate 7-8 expenses per category (total ~50-56 expenses)
             $count = rand(7, 8);
-            
+
             for ($i = 0; $i < $count; $i++) {
                 // Random date within the last 3 months
                 $date = $now->copy()->subDays(rand(0, 90));
-                
+
                 // Random amount based on category
                 $amount = $this->getAmountForCategory($category);
-                
+
                 // Random description from category
                 $description = $categoryDescriptions[array_rand($categoryDescriptions)];
-                
+
                 $expenses[] = [
                     'description' => $description,
                     'amount' => $amount,
@@ -132,7 +132,7 @@ class ExpenseSeeder extends Seeder
         // Insert all expenses
         Expense::insert($expenses);
 
-        $this->command->info('Created ' . count($expenses) . ' sample expenses.');
+        $this->command->info('Created '.count($expenses).' sample expenses.');
     }
 
     /**
@@ -151,7 +151,7 @@ class ExpenseSeeder extends Seeder
         ];
 
         [$min, $max] = $ranges[$category] ?? [1.00, 100.00];
-        
+
         // Generate random amount with 2 decimal places
         return round(rand($min * 100, $max * 100) / 100, 2);
     }
