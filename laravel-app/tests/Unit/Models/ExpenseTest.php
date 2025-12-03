@@ -39,7 +39,7 @@ class ExpenseTest extends TestCase
     public function test_expense_has_required_fields(): void
     {
         $fillable = ['description', 'amount', 'category', 'date'];
-        $expense = new Expense();
+        $expense = new Expense;
 
         $this->assertEquals($fillable, $expense->getFillable());
     }
@@ -254,7 +254,7 @@ class ExpenseTest extends TestCase
         Expense::factory()->create(['date' => '2025-12-01']);
 
         $novemberExpenses = Expense::whereBetween('date', ['2025-11-01', '2025-11-30'])->get();
-        
+
         $this->assertCount(2, $novemberExpenses);
     }
 

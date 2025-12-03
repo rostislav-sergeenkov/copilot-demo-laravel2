@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Expense;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -53,7 +52,7 @@ class ExpenseControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
-            return $expenses->count() === 2 && 
+            return $expenses->count() === 2 &&
                    $expenses->every(fn ($e) => $e->category === 'Groceries');
         });
     }
@@ -586,6 +585,7 @@ class ExpenseControllerTest extends TestCase
             $dates = $expenses->pluck('date')->toArray();
             $sortedDates = $dates;
             rsort($sortedDates);
+
             return $dates === $sortedDates;
         });
     }
