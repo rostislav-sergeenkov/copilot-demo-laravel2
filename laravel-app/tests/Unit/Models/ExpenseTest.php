@@ -302,4 +302,527 @@ class ExpenseTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $expense->created_at);
         $this->assertInstanceOf(Carbon::class, $expense->updated_at);
     }
+
+    // ==========================================
+    // Validation Rule Tests (Unit Level)
+    // ==========================================
+
+    /**
+     * Test description is required validation rule.
+     */
+    public function test_description_required_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('required', $rules['description']);
+    }
+
+    /**
+     * Test description max 255 characters validation rule.
+     */
+    public function test_description_max_255_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('max:255', $rules['description']);
+    }
+
+    /**
+     * Test description accepts unicode characters.
+     */
+    public function test_description_accepts_unicode(): void
+    {
+        $expense = Expense::factory()->create([
+            'description' => '日本語のテキスト Unicode 文字 émojis 🎉',
+        ]);
+
+        $this->assertEquals('日本語のテキスト Unicode 文字 émojis 🎉', $expense->description);
+    }
+
+    /**
+     * Test description accepts special characters.
+     */
+    public function test_description_accepts_special_characters(): void
+    {
+        $specialChars = "Test with symbols: @#$%^&*()_+-=[]{}|;':\",./<>?";
+        $expense = Expense::factory()->create([
+            'description' => $specialChars,
+        ]);
+
+        $this->assertEquals($specialChars, $expense->description);
+    }
+
+    /**
+     * Test amount required validation rule.
+     */
+    public function test_amount_required_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('required', $rules['amount']);
+        $this->assertContains('numeric', $rules['amount']);
+    }
+
+    /**
+     * Test amount minimum validation rule.
+     */
+    public function test_amount_min_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('min:0.01', $rules['amount']);
+    }
+
+    /**
+     * Test amount maximum validation rule.
+     */
+    public function test_amount_max_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('max:99999999.99', $rules['amount']);
+    }
+
+    /**
+     * Test amount accepts minimum value 0.01.
+     */
+    public function test_amount_accepts_minimum_value(): void
+    {
+        $expense = Expense::factory()->create([
+            'amount' => 0.01,
+        ]);
+
+        $this->assertEquals('0.01', $expense->amount);
+    }
+
+    /**
+     * Test amount accepts maximum value.
+     */
+    public function test_amount_accepts_maximum_value(): void
+    {
+        $expense = Expense::factory()->create([
+            'amount' => 999999.99,
+        ]);
+
+        $this->assertEquals('999999.99', $expense->amount);
+    }
+
+    /**
+     * Test amount stores exactly 2 decimal places.
+     */
+    public function test_amount_stores_two_decimal_places(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 1.00]);
+        $this->assertEquals('1.00', $expense->fresh()->amount);
+
+        $expense = Expense::factory()->create(['amount' => 1.50]);
+        $this->assertEquals('1.50', $expense->fresh()->amount);
+
+        $expense = Expense::factory()->create(['amount' => 1.23]);
+        $this->assertEquals('1.23', $expense->fresh()->amount);
+
+        $expense = Expense::factory()->create(['amount' => 999.99]);
+        $this->assertEquals('999.99', $expense->fresh()->amount);
+    }
+
+    /**
+     * Test amount rounds to 2 decimal places.
+     */
+    public function test_amount_rounds_to_two_decimals(): void
+    {
+        $expense = Expense::factory()->create([
+            'amount' => 12.3456,
+        ]);
+
+        // Laravel's decimal:2 cast should handle rounding
+        $freshAmount = $expense->fresh()->amount;
+        $this->assertEquals(2, strlen(substr(strrchr($freshAmount, "."), 1)), 'Amount should have exactly 2 decimal places');
+    }
+
+    /**
+     * Test category required validation rule.
+     */
+    public function test_category_required_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('required', $rules['category']);
+    }
+
+    /**
+     * Test category validates against CATEGORIES constant.
+     */
+    public function test_category_validates_enum(): void
+    {
+        $rules = Expense::validationRules();
+
+        $expectedRule = 'in:' . implode(',', Expense::CATEGORIES);
+        $this->assertContains($expectedRule, $rules['category']);
+    }
+
+    /**
+     * Test all valid categories can be stored.
+     */
+    public function test_all_valid_categories_can_be_stored(): void
+    {
+        foreach (Expense::CATEGORIES as $category) {
+            $expense = Expense::factory()->create(['category' => $category]);
+            $this->assertEquals($category, $expense->category);
+        }
+    }
+
+    /**
+     * Test date required validation rule.
+     */
+    public function test_date_required_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('required', $rules['date']);
+        $this->assertContains('date', $rules['date']);
+    }
+
+    /**
+     * Test date cannot be future validation rule.
+     */
+    public function test_date_cannot_be_future_rule(): void
+    {
+        $rules = Expense::validationRules();
+
+        $this->assertContains('before_or_equal:today', $rules['date']);
+    }
+
+    /**
+     * Test date accepts today's date.
+     */
+    public function test_date_accepts_today(): void
+    {
+        $expense = Expense::factory()->create([
+            'date' => Carbon::today(),
+        ]);
+
+        $this->assertEquals(Carbon::today()->format('Y-m-d'), $expense->date->format('Y-m-d'));
+    }
+
+    /**
+     * Test date accepts yesterday's date.
+     */
+    public function test_date_accepts_yesterday(): void
+    {
+        $expense = Expense::factory()->create([
+            'date' => Carbon::yesterday(),
+        ]);
+
+        $this->assertEquals(Carbon::yesterday()->format('Y-m-d'), $expense->date->format('Y-m-d'));
+    }
+
+    /**
+     * Test date accepts date 5 years ago.
+     */
+    public function test_date_accepts_five_years_ago(): void
+    {
+        $fiveYearsAgo = Carbon::today()->subYears(5);
+        $expense = Expense::factory()->create([
+            'date' => $fiveYearsAgo,
+        ]);
+
+        $this->assertEquals($fiveYearsAgo->format('Y-m-d'), $expense->date->format('Y-m-d'));
+    }
+
+    /**
+     * Test date accepts various valid formats.
+     */
+    public function test_date_accepts_valid_formats(): void
+    {
+        $dateFormats = [
+            '2025-12-01',
+            '2025-01-15',
+            '2024-06-30',
+        ];
+
+        foreach ($dateFormats as $dateString) {
+            $expense = Expense::factory()->create(['date' => $dateString]);
+            $this->assertEquals($dateString, $expense->date->format('Y-m-d'));
+        }
+    }
+
+    // ==========================================
+    // Calculation & Aggregation Tests (Unit Level)
+    // ==========================================
+
+    /**
+     * Test calculating sum of multiple expenses.
+     */
+    public function test_calculate_sum_of_expenses(): void
+    {
+        $expenses = [
+            Expense::factory()->create(['amount' => 10.50]),
+            Expense::factory()->create(['amount' => 20.75]),
+            Expense::factory()->create(['amount' => 30.25]),
+        ];
+
+        $total = Expense::sum('amount');
+
+        $this->assertEquals('61.50', number_format($total, 2, '.', ''));
+    }
+
+    /**
+     * Test calculating daily total.
+     */
+    public function test_calculate_daily_total(): void
+    {
+        $targetDate = Carbon::today();
+
+        Expense::factory()->create(['amount' => 25.50, 'date' => $targetDate]);
+        Expense::factory()->create(['amount' => 34.50, 'date' => $targetDate]);
+        Expense::factory()->create(['amount' => 40.00, 'date' => Carbon::yesterday()]);
+
+        $dailyTotal = Expense::whereDate('date', $targetDate)->sum('amount');
+
+        $this->assertEquals('60.00', number_format($dailyTotal, 2, '.', ''));
+    }
+
+    /**
+     * Test calculating monthly total.
+     */
+    public function test_calculate_monthly_total(): void
+    {
+        $targetMonth = Carbon::today()->format('Y-m');
+
+        Expense::factory()->create(['amount' => 100.00, 'date' => $targetMonth . '-01']);
+        Expense::factory()->create(['amount' => 150.00, 'date' => $targetMonth . '-15']);
+        Expense::factory()->create(['amount' => 200.00, 'date' => Carbon::today()->subMonth()->format('Y-m-d')]);
+
+        $monthlyTotal = Expense::whereYear('date', Carbon::today()->year)
+            ->whereMonth('date', Carbon::today()->month)
+            ->sum('amount');
+
+        $this->assertEquals('250.00', number_format($monthlyTotal, 2, '.', ''));
+    }
+
+    /**
+     * Test calculating category percentage.
+     */
+    public function test_calculate_category_percentage(): void
+    {
+        Expense::factory()->create(['amount' => 30.00, 'category' => 'Groceries']);
+        Expense::factory()->create(['amount' => 20.00, 'category' => 'Transport']);
+        Expense::factory()->create(['amount' => 50.00, 'category' => 'Groceries']);
+
+        $total = Expense::sum('amount'); // 100.00
+        $groceriesTotal = Expense::where('category', 'Groceries')->sum('amount'); // 80.00
+
+        $percentage = ($groceriesTotal / $total) * 100;
+
+        $this->assertEquals(80.0, $percentage);
+    }
+
+    /**
+     * Test calculating category breakdown.
+     */
+    public function test_calculate_category_breakdown(): void
+    {
+        Expense::factory()->create(['amount' => 40.00, 'category' => 'Groceries']);
+        Expense::factory()->create(['amount' => 30.00, 'category' => 'Transport']);
+        Expense::factory()->create(['amount' => 30.00, 'category' => 'Entertainment']);
+
+        $breakdown = Expense::selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        $this->assertEquals('40.00', number_format($breakdown['Groceries'], 2, '.', ''));
+        $this->assertEquals('30.00', number_format($breakdown['Transport'], 2, '.', ''));
+        $this->assertEquals('30.00', number_format($breakdown['Entertainment'], 2, '.', ''));
+    }
+
+    /**
+     * Test zero expenses returns zero total.
+     */
+    public function test_zero_expenses_returns_zero_total(): void
+    {
+        $total = Expense::sum('amount');
+
+        $this->assertEquals(0, $total);
+    }
+
+    /**
+     * Test category with zero expenses shows zero percentage.
+     */
+    public function test_category_with_zero_shows_zero_percentage(): void
+    {
+        Expense::factory()->create(['amount' => 100.00, 'category' => 'Groceries']);
+
+        $total = Expense::sum('amount'); // 100.00
+        $transportTotal = Expense::where('category', 'Transport')->sum('amount'); // 0.00
+
+        $percentage = $total > 0 ? ($transportTotal / $total) * 100 : 0;
+
+        $this->assertEquals(0.0, $percentage);
+    }
+
+    /**
+     * Test percentages sum to 100%.
+     */
+    public function test_percentages_sum_to_100_percent(): void
+    {
+        Expense::factory()->create(['amount' => 30.00, 'category' => 'Groceries']);
+        Expense::factory()->create(['amount' => 45.00, 'category' => 'Transport']);
+        Expense::factory()->create(['amount' => 25.00, 'category' => 'Entertainment']);
+
+        $total = Expense::sum('amount'); // 100.00
+        $percentageSum = 0;
+
+        $breakdown = Expense::selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->get();
+
+        foreach ($breakdown as $item) {
+            $percentageSum += ($item->total / $total) * 100;
+        }
+
+        $this->assertEquals(100.0, round($percentageSum, 2));
+    }
+
+    // ==========================================
+    // Sorting & Ordering Tests (Unit Level)
+    // ==========================================
+
+    /**
+     * Test expenses can be sorted by date descending.
+     */
+    public function test_expenses_sorted_by_date_desc(): void
+    {
+        Expense::factory()->create(['date' => '2025-11-01', 'description' => 'First']);
+        Expense::factory()->create(['date' => '2025-12-01', 'description' => 'Third']);
+        Expense::factory()->create(['date' => '2025-11-15', 'description' => 'Second']);
+
+        $expenses = Expense::orderBy('date', 'desc')->get();
+
+        $this->assertEquals('Third', $expenses[0]->description);
+        $this->assertEquals('Second', $expenses[1]->description);
+        $this->assertEquals('First', $expenses[2]->description);
+    }
+
+    /**
+     * Test expenses can be sorted by date ascending.
+     */
+    public function test_expenses_sorted_by_date_asc(): void
+    {
+        Expense::factory()->create(['date' => '2025-12-01', 'description' => 'Third']);
+        Expense::factory()->create(['date' => '2025-11-01', 'description' => 'First']);
+        Expense::factory()->create(['date' => '2025-11-15', 'description' => 'Second']);
+
+        $expenses = Expense::orderBy('date', 'asc')->get();
+
+        $this->assertEquals('First', $expenses[0]->description);
+        $this->assertEquals('Second', $expenses[1]->description);
+        $this->assertEquals('Third', $expenses[2]->description);
+    }
+
+    /**
+     * Test expenses can be sorted by amount.
+     */
+    public function test_expenses_sorted_by_amount(): void
+    {
+        Expense::factory()->create(['amount' => 50.00, 'description' => 'Medium']);
+        Expense::factory()->create(['amount' => 100.00, 'description' => 'High']);
+        Expense::factory()->create(['amount' => 10.00, 'description' => 'Low']);
+
+        $expenses = Expense::orderBy('amount', 'asc')->get();
+
+        $this->assertEquals('Low', $expenses[0]->description);
+        $this->assertEquals('Medium', $expenses[1]->description);
+        $this->assertEquals('High', $expenses[2]->description);
+    }
+
+    // ==========================================
+    // Edge Cases & Boundary Tests
+    // ==========================================
+
+    /**
+     * Test creating expense with minimum amount boundary.
+     */
+    public function test_minimum_amount_boundary(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 0.01]);
+
+        $this->assertEquals('0.01', $expense->amount);
+    }
+
+    /**
+     * Test creating expense with maximum amount boundary.
+     */
+    public function test_maximum_amount_boundary(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 999999.99]);
+
+        $this->assertEquals('999999.99', $expense->amount);
+    }
+
+    /**
+     * Test description at maximum length boundary.
+     */
+    public function test_description_at_maximum_length(): void
+    {
+        $maxDescription = str_repeat('a', 255);
+        $expense = Expense::factory()->create(['description' => $maxDescription]);
+
+        $this->assertEquals(255, strlen($expense->description));
+        $this->assertEquals($maxDescription, $expense->description);
+    }
+
+    /**
+     * Test expense with empty category breakdown.
+     */
+    public function test_empty_category_breakdown(): void
+    {
+        $breakdown = Expense::selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->get();
+
+        $this->assertCount(0, $breakdown);
+    }
+
+    /**
+     * Test filtering expenses by nonexistent category returns empty.
+     */
+    public function test_filter_by_nonexistent_category_returns_empty(): void
+    {
+        Expense::factory()->create(['category' => 'Groceries']);
+
+        $expenses = Expense::where('category', 'NonExistentCategory')->get();
+
+        $this->assertCount(0, $expenses);
+    }
+
+    /**
+     * Test large dataset calculation performance.
+     */
+    public function test_large_dataset_calculations(): void
+    {
+        // Create 50 expenses
+        Expense::factory()->count(50)->create(['amount' => 10.00]);
+
+        $total = Expense::sum('amount');
+
+        $this->assertEquals('500.00', number_format($total, 2, '.', ''));
+        $this->assertCount(50, Expense::all());
+    }
+
+    /**
+     * Test grouping expenses by date.
+     */
+    public function test_grouping_expenses_by_date(): void
+    {
+        Expense::factory()->count(3)->create(['date' => '2025-12-01']);
+        Expense::factory()->count(2)->create(['date' => '2025-12-02']);
+
+        $grouped = Expense::selectRaw('DATE(date) as expense_date, COUNT(*) as count')
+            ->groupBy('expense_date')
+            ->get()
+            ->pluck('count', 'expense_date');
+
+        $this->assertEquals(3, $grouped['2025-12-01']);
+        $this->assertEquals(2, $grouped['2025-12-02']);
+    }
 }

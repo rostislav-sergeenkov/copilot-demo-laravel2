@@ -15,7 +15,6 @@ Features
 3. Display a table of monthly expenses.
 4. Filter expenses by category.
 
-
 Technical Requirements
 1. The application is built using Laravel framework and follows established coding standards and best practices for Laravel development.
 2. The application source code is stored on GitHub.com.

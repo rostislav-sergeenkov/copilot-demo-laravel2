@@ -48,6 +48,42 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "test:unit": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Unit"
+        ],
+        "test:unit:coverage": [
+            "@php artisan config:clear --ansi",
+            "vendor\\bin\\phpunit --testsuite=Unit --coverage-text"
+        ],
+        "test:feature": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Feature"
+        ],
+        "test:feature:coverage": [
+            "@php artisan config:clear --ansi",
+            "vendor\\bin\\phpunit --testsuite=Feature --coverage-text"
+        ],
+        "test:e2e": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test"
+        ],
+        "test:e2e:ui": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test --ui"
+        ],
+        "test:e2e:quick": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test tests/e2e/monthly-view.spec.ts -g \"should load page at /expenses/monthly\""
+        ],
+        "test:e2e:quick:ui": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test tests/e2e/monthly-view.spec.ts -g \"should load page at /expenses/monthly\"  --ui"
+        ],
+        "test:e2e:monthly-view:ui": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test tests/e2e/monthly-view.spec.ts --ui"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

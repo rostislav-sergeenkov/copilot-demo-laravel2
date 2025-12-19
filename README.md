@@ -28,7 +28,8 @@ Expense Tracker is a simple, robust web application for recording, categorizing,
 - **Daily & Monthly Views**: Summaries, breakdowns, and category percentages
 - **Soft Deletes**: Restore deleted expenses anytime
 - **Material UI Design**: Clean, accessible, and responsive interface
-- **Comprehensive Tests**: Feature and integration tests for reliability
+- **Comprehensive Tests**: Feature tests (PHPUnit) and E2E tests (Playwright)
+- **Full Test Coverage**: 100% acceptance criteria coverage with automated E2E tests
 
 ---
 
@@ -54,9 +55,16 @@ php artisan serve
 
 ### Running Tests
 ```bash
+# Backend tests (PHPUnit)
 php artisan test                    # All tests
 php artisan test --filter=Expense   # Only expense tests
+
+# E2E tests (Playwright)
+npm run test:e2e                    # All E2E tests
+npm run test:e2e:ui                 # UI mode (recommended)
 ```
+
+See [E2E-TESTING-QUICKSTART.md](E2E-TESTING-QUICKSTART.md) for detailed E2E testing guide.
 
 ---
 
@@ -71,8 +79,10 @@ See [`docs/Project_Architecture_Blueprint.md`](docs/Project_Architecture_Bluepri
 - **Validation**: Centralized in model and Form Requests
 - **Views**: Blade templates in `resources/views/expenses/` (shared `_form.blade.php`)
 - **Routes**: Custom views (`/expenses/daily`, `/expenses/monthly`) defined before resource routes
-- **Testing**: `tests/Feature/ExpenseControllerTest.php` with database factories and states
-- **CI/CD**: GitHub Actions (`.github/workflows/laravel.yml`) runs tests and code style checks on PRs
+- **Testing**: 
+  - Backend: `tests/Feature/ExpenseControllerTest.php` with database factories and states
+  - E2E: `tests/e2e/*.spec.ts` - Playwright tests covering all acceptance criteria
+- **CI/CD**: GitHub Actions runs both PHPUnit and Playwright tests on PRs
 
 ---
 
