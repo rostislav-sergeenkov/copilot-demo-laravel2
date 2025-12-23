@@ -92,7 +92,7 @@ export async function getExpenseRows(page: Page) {
  * Verify success message is displayed
  */
 export async function expectSuccessMessage(page: Page, message?: string) {
-  const alert = page.locator('.alert-success, [role="alert"]:has-text("success")');
+  const alert = page.locator('.snackbar-success, .snackbar.snackbar-success');
   await expect(alert).toBeVisible();
   if (message) {
     await expect(alert).toContainText(message);
@@ -107,7 +107,7 @@ export async function expectErrorMessage(page: Page, fieldName?: string) {
     const error = page.locator(`[data-field="${fieldName}"] .error, .invalid-feedback:near(input[name="${fieldName}"])`);
     await expect(error).toBeVisible();
   } else {
-    const alert = page.locator('.alert-danger, [role="alert"]:has-text("error")');
+    const alert = page.locator('.snackbar-error, .snackbar.snackbar-error');
     await expect(alert).toBeVisible();
   }
 }

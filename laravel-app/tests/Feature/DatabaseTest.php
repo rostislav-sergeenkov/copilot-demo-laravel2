@@ -26,7 +26,7 @@ class DatabaseTest extends TestCase
     public function test_expenses_table_has_correct_columns(): void
     {
         $this->assertTrue(Schema::hasTable('expenses'));
-        
+
         $this->assertTrue(Schema::hasColumn('expenses', 'id'));
         $this->assertTrue(Schema::hasColumn('expenses', 'description'));
         $this->assertTrue(Schema::hasColumn('expenses', 'amount'));
@@ -44,11 +44,11 @@ class DatabaseTest extends TestCase
     {
         $indexes = DB::select("PRAGMA index_list('expenses')");
         $indexNames = collect($indexes)->pluck('name')->toArray();
-        
+
         $hasDateIndex = collect($indexNames)->contains(function ($name) {
             return str_contains($name, 'date');
         });
-        
+
         $this->assertTrue($hasDateIndex, 'Date column should have an index');
     }
 
@@ -59,11 +59,11 @@ class DatabaseTest extends TestCase
     {
         $indexes = DB::select("PRAGMA index_list('expenses')");
         $indexNames = collect($indexes)->pluck('name')->toArray();
-        
+
         $hasCategoryIndex = collect($indexNames)->contains(function ($name) {
             return str_contains($name, 'category');
         });
-        
+
         $this->assertTrue($hasCategoryIndex, 'Category column should have an index');
     }
 
@@ -81,9 +81,9 @@ class DatabaseTest extends TestCase
     public function test_amount_column_decimal_precision(): void
     {
         $expense = Expense::factory()->create(['amount' => 123.456]);
-        
+
         $storedExpense = Expense::find($expense->id);
-        
+
         // Should be rounded to 2 decimal places
         $this->assertEquals('123.46', $storedExpense->amount);
     }
@@ -98,9 +98,9 @@ class DatabaseTest extends TestCase
     public function test_seeder_creates_sample_expenses(): void
     {
         $this->artisan('db:seed', ['--class' => 'ExpenseSeeder']);
-        
+
         $count = Expense::count();
-        
+
         $this->assertGreaterThan(0, $count);
         $this->assertLessThanOrEqual(50, $count);
     }
@@ -111,9 +111,9 @@ class DatabaseTest extends TestCase
     public function test_seeded_data_has_all_categories(): void
     {
         $this->artisan('db:seed', ['--class' => 'ExpenseSeeder']);
-        
+
         $categories = Expense::distinct('category')->pluck('category')->toArray();
-        
+
         foreach (Expense::CATEGORIES as $category) {
             $this->assertContains($category, $categories);
         }
@@ -125,11 +125,11 @@ class DatabaseTest extends TestCase
     public function test_seeded_expenses_span_multiple_months(): void
     {
         $this->artisan('db:seed', ['--class' => 'ExpenseSeeder']);
-        
+
         $months = Expense::selectRaw('DISTINCT strftime("%Y-%m", date) as month')
             ->pluck('month')
             ->count();
-        
+
         $this->assertGreaterThan(1, $months);
     }
 
@@ -140,15 +140,15 @@ class DatabaseTest extends TestCase
     {
         $expense = Expense::factory()->create();
         $expenseId = $expense->id;
-        
+
         $expense->delete();
-        
+
         // Should not be in default query
         $this->assertNull(Expense::find($expenseId));
-        
+
         // Should exist in withTrashed query
         $this->assertNotNull(Expense::withTrashed()->find($expenseId));
-        
+
         // Should have deleted_at timestamp
         $trashedExpense = Expense::withTrashed()->find($expenseId);
         $this->assertNotNull($trashedExpense->deleted_at);
@@ -161,9 +161,9 @@ class DatabaseTest extends TestCase
     {
         $expense = Expense::factory()->create();
         $expenseId = $expense->id;
-        
+
         $expense->forceDelete();
-        
+
         $this->assertNull(Expense::withTrashed()->find($expenseId));
         $this->assertDatabaseMissing('expenses', ['id' => $expenseId]);
     }
@@ -178,9 +178,9 @@ class DatabaseTest extends TestCase
     public function test_pagination_limits_to_15_per_page(): void
     {
         Expense::factory()->count(20)->create();
-        
+
         $response = $this->get(route('expenses.index'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
             return $expenses->count() === 15;
@@ -193,9 +193,9 @@ class DatabaseTest extends TestCase
     public function test_pagination_prevents_loading_all_records(): void
     {
         Expense::factory()->count(50)->create();
-        
+
         $response = $this->get(route('expenses.index'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
             // Should only load 15 items, not all 50
@@ -209,9 +209,9 @@ class DatabaseTest extends TestCase
     public function test_pagination_page_2_works(): void
     {
         Expense::factory()->count(20)->create();
-        
+
         $response = $this->get(route('expenses.index', ['page' => 2]));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
             return $expenses->count() === 5; // Remaining items
@@ -225,9 +225,9 @@ class DatabaseTest extends TestCase
     {
         Expense::factory()->category('Groceries')->count(20)->create();
         Expense::factory()->category('Transport')->count(10)->create();
-        
+
         $response = $this->get(route('expenses.index', ['category' => 'Groceries']));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
             return $expenses->count() === 15 && $expenses->total() === 20;
@@ -244,17 +244,17 @@ class DatabaseTest extends TestCase
     public function test_index_page_queries_optimized(): void
     {
         Expense::factory()->count(20)->create();
-        
+
         // Enable query log
         DB::enableQueryLog();
-        
+
         $this->get(route('expenses.index'));
-        
+
         $queries = DB::getQueryLog();
-        
+
         // Should have minimal queries (1-3 for pagination and data)
         $this->assertLessThan(10, count($queries));
-        
+
         DB::disableQueryLog();
     }
 
@@ -264,15 +264,15 @@ class DatabaseTest extends TestCase
     public function test_daily_view_queries_optimized(): void
     {
         Expense::factory()->count(10)->create(['date' => Carbon::today()]);
-        
+
         DB::enableQueryLog();
-        
+
         $this->get(route('expenses.daily'));
-        
+
         $queries = DB::getQueryLog();
-        
+
         $this->assertLessThan(10, count($queries));
-        
+
         DB::disableQueryLog();
     }
 
@@ -282,15 +282,15 @@ class DatabaseTest extends TestCase
     public function test_monthly_view_queries_optimized(): void
     {
         Expense::factory()->count(10)->create(['date' => Carbon::today()]);
-        
+
         DB::enableQueryLog();
-        
+
         $this->get(route('expenses.monthly'));
-        
+
         $queries = DB::getQueryLog();
-        
+
         $this->assertLessThan(10, count($queries));
-        
+
         DB::disableQueryLog();
     }
 
@@ -304,11 +304,11 @@ class DatabaseTest extends TestCase
     public function test_database_transactions_work(): void
     {
         DB::beginTransaction();
-        
+
         Expense::factory()->create(['description' => 'Test Transaction']);
-        
+
         DB::rollBack();
-        
+
         $this->assertDatabaseMissing('expenses', ['description' => 'Test Transaction']);
     }
 
@@ -318,11 +318,11 @@ class DatabaseTest extends TestCase
     public function test_concurrent_updates_handled(): void
     {
         $expense = Expense::factory()->create(['amount' => 50.00]);
-        
+
         $expense->update(['amount' => 75.00]);
-        
+
         $updatedExpense = Expense::find($expense->id);
-        
+
         $this->assertEquals('75.00', $updatedExpense->amount);
     }
 
@@ -336,7 +336,7 @@ class DatabaseTest extends TestCase
     public function test_empty_database_handled_gracefully(): void
     {
         $response = $this->get(route('expenses.index'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses', function ($expenses) {
             return $expenses->isEmpty();
@@ -349,9 +349,9 @@ class DatabaseTest extends TestCase
     public function test_large_dataset_queries(): void
     {
         Expense::factory()->count(100)->create();
-        
+
         $response = $this->get(route('expenses.index'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('expenses');
     }

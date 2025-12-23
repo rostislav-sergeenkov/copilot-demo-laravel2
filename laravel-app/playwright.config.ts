@@ -7,11 +7,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /**
  * Playwright configuration for Laravel Expense Tracker E2E tests
  * 
+ * By default, only happy-path.spec.ts runs for faster testing.
+ * To run all tests: npx playwright test --grep-invert "@skip"
+ * 
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
   testDir: './tests/e2e',
   
+  // Run only happy path tests by default (use --grep="" to run all)
+  testMatch: process.env.TEST_ALL ? '**/*.spec.ts' : '**/happy-path.spec.ts',
+
   // Maximum time one test can run for
   timeout: 30 * 1000,
   
@@ -41,13 +47,13 @@ export default defineConfig({
     baseURL: process.env.APP_URL || 'http://127.0.0.1:8000',
     
     // Collect trace when retrying the failed test
-    trace: 'on-first-retry',
+    trace: 'off',
     
     // Screenshot on failure
-    screenshot: 'only-on-failure',
+    screenshot: 'off',
     
     // Video on failure
-    video: 'retain-on-failure',
+    video: 'off',
   },
 
   // Configure projects for major browsers

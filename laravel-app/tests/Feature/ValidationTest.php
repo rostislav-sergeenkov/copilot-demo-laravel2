@@ -76,7 +76,7 @@ class ValidationTest extends TestCase
     public function test_description_accepts_special_characters_via_http(): void
     {
         $specialChars = "Test @#$%^&*()_+-=[]{}|;':\",./<>?";
-        
+
         $response = $this->post(route('expenses.store'), [
             'description' => $specialChars,
             'amount' => 50.00,

@@ -1,6 +1,34 @@
 # Acceptance Criteria to Test Mapping
 
-This document maps each acceptance criterion from `.github/copilot-acceptance-checklist.md` to the corresponding Playwright E2E test.
+This document maps each acceptance criterion from `.github/copilot-acceptance-checklist.md` to the corresponding tests.
+
+## ⚡ Quick Testing Guide
+
+### Default Testing (Fast - ~3 minutes total)
+```bash
+cd laravel-app
+
+# PHPUnit tests (Unit + Feature) - ~8 seconds
+php artisan test
+
+# E2E Happy Path tests - ~2-3 minutes
+npm run test:e2e
+```
+
+### Comprehensive Testing (Before Release - ~20 minutes)
+```bash
+cd laravel-app
+
+# All PHPUnit tests
+php artisan test
+
+# All E2E tests including edge cases
+npm run test:e2e:all
+```
+
+📖 See [E2E Happy Path Strategy](docs/E2E-Happy-Path-Strategy.md) for details.
+
+---
 
 ## ✅ Feature Acceptance
 

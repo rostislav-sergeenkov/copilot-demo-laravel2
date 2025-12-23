@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for formatting helper functions.
- * 
+ *
  * Note: These tests validate formatting logic that would typically
  * be in helper functions. If your application uses Blade directives
  * or view composers for formatting, adapt these tests accordingly.
@@ -75,13 +75,13 @@ class FormatHelperTest extends TestCase
     public function test_format_date_with_custom_format(): void
     {
         $date = '2025-12-17';
-        
+
         $formatted = $this->formatDate($date, 'Y-m-d');
         $this->assertEquals('2025-12-17', $formatted);
-        
+
         $formatted = $this->formatDate($date, 'd/m/Y');
         $this->assertEquals('17/12/2025', $formatted);
-        
+
         $formatted = $this->formatDate($date, 'l, F j, Y');
         $this->assertEquals('Wednesday, December 17, 2025', $formatted);
     }
@@ -139,7 +139,7 @@ class FormatHelperTest extends TestCase
     {
         $longText = 'This is a very long description that should be truncated';
         $truncated = $this->truncateText($longText, 20);
-        
+
         $this->assertEquals('This is a very lo...', $truncated);
         $this->assertEquals(20, strlen($truncated));
     }
@@ -151,7 +151,7 @@ class FormatHelperTest extends TestCase
     {
         $shortText = 'Short text';
         $truncated = $this->truncateText($shortText, 20);
-        
+
         $this->assertEquals('Short text', $truncated);
     }
 
@@ -168,6 +168,7 @@ class FormatHelperTest extends TestCase
         if ($amount < 0) {
             return '-$' . number_format(abs($amount), 2);
         }
+
         return '$' . number_format($amount, 2);
     }
 
@@ -198,6 +199,7 @@ class FormatHelperTest extends TestCase
         if (strlen($text) <= $length) {
             return $text;
         }
+
         return substr($text, 0, $length - 3) . '...';
     }
 }

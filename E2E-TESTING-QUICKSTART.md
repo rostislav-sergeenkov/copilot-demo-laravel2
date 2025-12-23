@@ -1,5 +1,23 @@
 # Quick Start: E2E Testing
 
+## ⚡ TL;DR - Happy Path (Fast Testing)
+
+```bash
+cd laravel-app
+npm install && npx playwright install
+npm run test:e2e  # Runs 16 core tests in ~2-3 minutes
+```
+
+## 📖 Testing Strategy
+
+By default, E2E tests run **only Happy Path tests** (core business flows) for speed:
+- ✅ **Default**: 16 tests (~2-3 minutes) - `npm run test:e2e`
+- 🔍 **Comprehensive**: 80+ tests (~15-20 minutes) - `npm run test:e2e:all`
+
+📖 See [E2E Happy Path Strategy](docs/E2E-Happy-Path-Strategy.md) for details.
+
+---
+
 ## 🚀 First Time Setup
 
 ### 1. Install Dependencies
@@ -29,21 +47,29 @@ php artisan db:seed  # Optional: seed sample data
 
 ## 🎯 Running Tests
 
-### Recommended: UI Mode
+### ⚡ Default: Happy Path Only (Recommended)
+```bash
+npm run test:e2e
+```
+Runs 16 core tests covering essential user workflows.
+
+### 🔍 All Comprehensive Tests
+```bash
+npm run test:e2e:all
+```
+Runs 80+ tests including edge cases, validation, and UI details.
+
+### 🎨 Recommended: UI Mode
 Best for development and debugging:
 ```bash
 npm run test:e2e:ui
 ```
 
-### Run All Tests (Headless)
-```bash
-npm run test:e2e
-```
-
 ### Run Specific Test File
 ```bash
-npx playwright test crud.spec.ts
-npx playwright test validation.spec.ts
+npx playwright test happy-path.spec.ts  # Happy path only
+npx playwright test crud.spec.ts        # Detailed CRUD tests
+npx playwright test validation.spec.ts  # Validation tests
 ```
 
 ### Run in Headed Mode (See Browser)
@@ -62,12 +88,6 @@ npm run test:e2e:debug
 npx playwright test --project=chromium
 npx playwright test --project=firefox
 npx playwright test --project=webkit
-```
-
-### Run Mobile Tests
-```bash
-npx playwright test --project="Mobile Chrome"
-npx playwright test --project="Mobile Safari"
 ```
 
 ## 📊 View Test Results

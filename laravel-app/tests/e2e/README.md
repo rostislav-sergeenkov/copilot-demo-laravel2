@@ -2,18 +2,49 @@
 
 This directory contains Playwright end-to-end tests for the Expense Tracker application, based on the acceptance criteria defined in `.github/copilot-acceptance-checklist.md`.
 
+## ⚡ Quick Start - Happy Path Testing
+
+By default, tests run **only the Happy Path** (core business flows) for faster feedback:
+
+```bash
+cd laravel-app
+npm run test:e2e  # Runs 16 happy path tests (~2-3 minutes)
+```
+
+To run **all comprehensive tests** (80+ tests, ~15-20 minutes):
+```bash
+npm run test:e2e:all
+```
+
+📖 See [E2E Happy Path Strategy](../../../docs/E2E-Happy-Path-Strategy.md) for detailed explanation.
+
 ## 📁 Test Structure
 
 ```
 tests/e2e/
 ├── helpers.ts              # Shared test utilities and helper functions
-├── crud.spec.ts            # F1: Expense CRUD Interface tests
-├── daily-view.spec.ts      # F2: Daily Expenses View tests
-├── monthly-view.spec.ts    # F3: Monthly Expenses View tests
-├── filtering.spec.ts       # F4: Category Filtering tests
-├── validation.spec.ts      # Data Validation tests
-└── ui-accessibility.spec.ts # UI and Accessibility tests
+├── happy-path.spec.ts      # ✅ Happy Path tests (runs by default)
+├── crud.spec.ts            # F1: Expense CRUD Interface tests (detailed)
+├── daily-view.spec.ts      # F2: Daily Expenses View tests (detailed)
+├── monthly-view.spec.ts    # F3: Monthly Expenses View tests (detailed)
+├── filtering.spec.ts       # F4: Category Filtering tests (detailed)
+├── validation.spec.ts      # Data Validation tests (edge cases)
+└── ui-accessibility.spec.ts # UI and Accessibility tests (detailed)
 ```
+
+### Test Categories
+
+**happy-path.spec.ts** (16 tests - **RUNS BY DEFAULT**):
+- ✅ Core CRUD operations (create, read, update, delete)
+- ✅ Basic daily and monthly views
+- ✅ Simple category filtering
+- ✅ Main navigation flows
+
+**Other test files** (60+ tests - **RUN ON-DEMAND**):
+- ⏸️ Edge cases and validation scenarios
+- ⏸️ UI/accessibility details
+- ⏸️ Advanced filtering and navigation
+- ⏸️ Error handling and empty states
 
 ## 🚀 Getting Started
 
@@ -32,22 +63,27 @@ npx playwright install
 
 ### Running Tests
 
-#### Run all tests
+#### Default: Happy Path only (Fast ⚡)
 ```bash
 npm run test:e2e
 ```
 
-#### Run tests with UI mode (recommended for development)
+#### All comprehensive tests
+```bash
+npm run test:e2e:all
+```
+
+#### UI mode (recommended for development)
 ```bash
 npm run test:e2e:ui
 ```
 
-#### Run tests in headed mode (see the browser)
+#### Headed mode (see the browser)
 ```bash
 npm run test:e2e:headed
 ```
 
-#### Run tests in debug mode
+#### Debug mode
 ```bash
 npm run test:e2e:debug
 ```
@@ -55,9 +91,10 @@ npm run test:e2e:debug
 #### Run specific test file
 ```bash
 npx playwright test crud.spec.ts
+npx playwright test happy-path.spec.ts
 ```
 
-#### Run tests in a specific browser
+#### Run specific browser
 ```bash
 npx playwright test --project=chromium
 npx playwright test --project=firefox
@@ -66,38 +103,66 @@ npx playwright test --project=webkit
 
 ## 🎯 Test Coverage
 
-The test suite covers all acceptance criteria from the checklist:
+### Happy Path Tests (Default - 16 tests)
 
-### F1: Expense CRUD Interface (crud.spec.ts)
-- ✅ Create Expense - form validation, submission, navigation
-- ✅ Read Expenses - index page display, sorting, pagination
-- ✅ Update Expense - pre-population, editing, saving
-- ✅ Delete Expense - confirmation, soft-delete behavior
+**Basic CRUD (7 tests):**
+- ✅ Create expense successfully
+- ✅ Display expense list
+- ✅ Update existing expense
+- ✅ Delete expense
+- ✅ Sort by date
+- ✅ Form navigation
+- ✅ Currency formatting
 
-### F2: Daily Expenses View (daily-view.spec.ts)
-- ✅ Date selection and navigation (previous/next/today)
-- ✅ Daily totals calculation
-- ✅ Category breakdown
-- ✅ Category filtering
-- ✅ Empty states
+**Daily View (3 tests):**
+- ✅ Load and show current date
+- ✅ Display expenses for date
+- ✅ Calculate daily total
 
-### F3: Monthly Expenses View (monthly-view.spec.ts)
-- ✅ Month selection and navigation
-- ✅ Monthly totals calculation
-- ✅ Category percentages (sum = 100%)
-- ✅ Empty states
+**Monthly View (3 tests):**
+- ✅ Load and show current month
+- ✅ Display monthly total
+- ✅ Show category breakdown
 
-### F4: Category Filtering (filtering.spec.ts)
-- ✅ Filter dropdown on all views
-- ✅ Filter application and clearing
-- ✅ Total updates when filtered
-- ✅ Filter persistence in URL
+**Filtering (2 tests):**
+- ✅ Filter by category
+- ✅ Clear filter
 
-### Data Validation (validation.spec.ts)
-- ✅ Description field (required, max 255 chars, Unicode support)
-- ✅ Amount field (required, min $0.01, max $999,999.99, decimal support)
-- ✅ Category field (required, valid values only)
-- ✅ Date field (required, no future dates, within 5 years)
+**Navigation (1 test):**
+- ✅ Navigate between pages
+
+### Comprehensive Test Suite (80+ tests)
+
+### F1: Expense CRUD Interface (crud.spec.ts - 25 tests)
+- Create Expense - form validation, submission, navigation
+- Read Expenses - index page display, sorting, pagination
+- Update Expense - pre-population, editing, saving
+- Delete Expense - confirmation, soft-delete behavior
+
+### F2: Daily Expenses View (daily-view.spec.ts - 12 tests)
+- Date selection and navigation (previous/next/today)
+- Daily totals calculation
+- Category breakdown
+- Category filtering
+- Empty states
+
+### F3: Monthly Expenses View (monthly-view.spec.ts - 13 tests)
+- Month selection and navigation
+- Monthly totals calculation
+- Category percentages (sum = 100%)
+- Empty states
+
+### F4: Category Filtering (filtering.spec.ts - 15 tests)
+- Filter dropdown on all views
+- Filter application and clearing
+- Total updates when filtered
+- Filter persistence in URL
+
+### Data Validation (validation.spec.ts - 25 tests)
+- Description field (required, max 255 chars, Unicode support)
+- Amount field (required, min $0.01, max $999,999.99, decimal support)
+- Category field (required, valid values only)
+- Date field (required, no future dates, within 5 years)
 - ✅ Error message display (inline and flash messages)
 - ✅ Form repopulation after errors
 - ✅ Server-side validation

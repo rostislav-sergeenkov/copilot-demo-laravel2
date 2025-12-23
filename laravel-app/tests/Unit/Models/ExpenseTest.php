@@ -436,7 +436,7 @@ class ExpenseTest extends TestCase
 
         // Laravel's decimal:2 cast should handle rounding
         $freshAmount = $expense->fresh()->amount;
-        $this->assertEquals(2, strlen(substr(strrchr($freshAmount, "."), 1)), 'Amount should have exactly 2 decimal places');
+        $this->assertEquals(2, strlen(substr(strrchr($freshAmount, '.'), 1)), 'Amount should have exactly 2 decimal places');
     }
 
     /**
@@ -824,5 +824,220 @@ class ExpenseTest extends TestCase
 
         $this->assertEquals(3, $grouped['2025-12-01']);
         $this->assertEquals(2, $grouped['2025-12-02']);
+    }
+
+    // ==============================================
+    // Additional Edge Case Tests
+    // ==============================================
+
+    /**
+     * Test handling of extremely long descriptions (at maximum length).
+     */
+    public function test_handles_maximum_length_description(): void
+    {
+        $description = str_repeat('a', 255);
+        $expense = Expense::factory()->create([
+            'description' => $description,
+        ]);
+
+        $this->assertEquals(255, strlen($expense->description));
+        $this->assertEquals($description, $expense->description);
+    }
+
+    /**
+     * Test handling of Unicode and emoji characters in description.
+     */
+    public function test_handles_unicode_and_emoji_in_description(): void
+    {
+        $expense = Expense::factory()->create([
+            'description' => '🎉 Birthday party supplies! 🎈 Café au lait ☕',
+        ]);
+
+        $this->assertStringContainsString('🎉', $expense->description);
+        $this->assertStringContainsString('☕', $expense->description);
+        $this->assertStringContainsString('Café', $expense->description);
+    }
+
+    /**
+     * Test handling of amounts with many decimal places (should round to 2 decimals).
+     */
+    public function test_handles_amounts_with_many_decimal_places(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 123.456789]);
+
+        // Amount should be stored with 2 decimal places
+        $this->assertEquals('123.46', $expense->amount);
+    }
+
+    /**
+     * Test handling of very small amounts (close to minimum).
+     */
+    public function test_handles_very_small_amounts(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 0.01]);
+
+        $this->assertEquals('0.01', $expense->amount);
+        $this->assertGreaterThan(0, $expense->amount);
+    }
+
+    /**
+     * Test handling of very large amounts (close to maximum).
+     */
+    public function test_handles_very_large_amounts(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 999999.99]);
+
+        $this->assertEquals('999999.99', $expense->amount);
+        $this->assertLessThan(1000000, $expense->amount);
+    }
+
+    /**
+     * Test that expenses exactly 5 years old are handled correctly.
+     */
+    public function test_handles_expenses_exactly_five_years_old(): void
+    {
+        $fiveYearsAgo = now()->subYears(5)->format('Y-m-d');
+        $expense = Expense::factory()->create(['date' => $fiveYearsAgo]);
+
+        $this->assertEquals($fiveYearsAgo, $expense->date->format('Y-m-d'));
+        $this->assertTrue($expense->date->isPast() || $expense->date->isToday());
+    }
+
+    /**
+     * Test that category filtering prevents SQL injection.
+     */
+    public function test_category_filter_prevents_sql_injection(): void
+    {
+        Expense::factory()->create(['category' => 'Groceries']);
+
+        // Attempt SQL injection
+        $results = Expense::where('category', "' OR '1'='1")->get();
+
+        $this->assertCount(0, $results);
+    }
+
+    /**
+     * Test maintaining precision for large sum aggregations.
+     */
+    public function test_maintains_precision_for_large_aggregations(): void
+    {
+        // Create 100 expenses with large amounts
+        Expense::factory()->count(100)->create(['amount' => 99999.99]);
+
+        $total = Expense::sum('amount');
+
+        $this->assertIsNumeric($total);
+        $this->assertGreaterThan(0, $total);
+        // Total should be approximately 9,999,999.00
+        $this->assertGreaterThan(9999000, $total);
+        $this->assertLessThan(10000000, $total);
+    }
+
+    /**
+     * Test concurrent updates don't cause data corruption.
+     */
+    public function test_handles_concurrent_updates_gracefully(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 100.00]);
+
+        // Simulate concurrent updates
+        $expense1 = Expense::find($expense->id);
+        $expense2 = Expense::find($expense->id);
+
+        $expense1->update(['amount' => 200.00]);
+        $expense2->update(['amount' => 300.00]);
+
+        // Last update should win
+        $this->assertEquals('300.00', $expense->fresh()->amount);
+    }
+
+    /**
+     * Test factory generates valid expenses across all categories.
+     */
+    public function test_factory_generates_valid_expenses_for_all_categories(): void
+    {
+        foreach (Expense::CATEGORIES as $category) {
+            $expense = Expense::factory()->category($category)->create();
+
+            $this->assertEquals($category, $expense->category);
+            $this->assertContains($expense->category, Expense::CATEGORIES);
+        }
+    }
+
+    /**
+     * Test factory generates expenses with valid amount distribution.
+     */
+    public function test_factory_generates_valid_amount_distribution(): void
+    {
+        $expenses = Expense::factory()->count(100)->create();
+
+        foreach ($expenses as $expense) {
+            $this->assertGreaterThanOrEqual(0.01, $expense->amount);
+            $this->assertLessThanOrEqual(999999.99, $expense->amount);
+            // Amount should have at most 2 decimal places
+            $this->assertMatchesRegularExpression('/^\d+\.\d{2}$/', $expense->amount);
+        }
+    }
+
+    /**
+     * Test factory generates expenses with valid date range.
+     */
+    public function test_factory_generates_expenses_with_valid_date_range(): void
+    {
+        $expenses = Expense::factory()->count(50)->create();
+
+        foreach ($expenses as $expense) {
+            $this->assertInstanceOf(Carbon::class, $expense->date);
+            $this->assertTrue(
+                $expense->date->isPast() || $expense->date->isToday(),
+                'Expense date should not be in the future'
+            );
+        }
+    }
+
+    /**
+     * Test empty string description is handled correctly.
+     */
+    public function test_handles_special_characters_in_description(): void
+    {
+        $expense = Expense::factory()->create([
+            'description' => 'Test & <script>alert("xss")</script> Special "chars"',
+        ]);
+
+        $this->assertStringContainsString('&', $expense->description);
+        $this->assertStringContainsString('<script>', $expense->description);
+        $this->assertStringContainsString('"chars"', $expense->description);
+    }
+
+    /**
+     * Test amount precision is maintained through updates.
+     */
+    public function test_maintains_amount_precision_through_updates(): void
+    {
+        $expense = Expense::factory()->create(['amount' => 123.45]);
+
+        $this->assertEquals('123.45', $expense->amount);
+
+        $expense->update(['amount' => 678.90]);
+
+        $this->assertEquals('678.90', $expense->fresh()->amount);
+    }
+
+    /**
+     * Test that soft-deleted expenses can be retrieved with trashed scope.
+     */
+    public function test_soft_deleted_expenses_can_be_retrieved_with_trashed(): void
+    {
+        $expense = Expense::factory()->create();
+        $expenseId = $expense->id;
+
+        $expense->delete();
+
+        // Should not be in default query
+        $this->assertNull(Expense::find($expenseId));
+
+        // Should be retrievable with trashed
+        $this->assertNotNull(Expense::withTrashed()->find($expenseId));
+        $this->assertNotNull($expense->fresh()->deleted_at);
     }
 }

@@ -13,6 +13,8 @@ class ExpenseSeeder extends Seeder
 
     /**
      * Sample descriptions organized by category.
+     *
+     * @var array<string, array<int, string>>
      */
     protected array $descriptions = [
         'Groceries' => [
@@ -132,7 +134,7 @@ class ExpenseSeeder extends Seeder
         // Insert all expenses
         Expense::insert($expenses);
 
-        $this->command->info('Created '.count($expenses).' sample expenses.');
+        $this->command->info('Created ' . count($expenses) . ' sample expenses.');
     }
 
     /**
