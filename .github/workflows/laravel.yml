@@ -76,11 +76,8 @@ jobs:
           name: laravel-dependencies
           path: laravel-app
 
-      - name: Set Permissions
-        run: chmod -R +x vendor/bin
-
       - name: Run Laravel Pint
-        run: ./vendor/bin/pint --test
+        run: composer exec pint -- --test
 
   static-analysis:
     needs: setup
@@ -106,11 +103,8 @@ jobs:
           name: laravel-dependencies
           path: laravel-app
 
-      - name: Set Permissions
-        run: chmod -R +x vendor/bin
-
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+        run: composer exec phpstan -- analyse --memory-limit=2G --no-progress
 
   unit-tests:
     needs: setup
@@ -137,9 +131,6 @@ jobs:
           name: laravel-dependencies
           path: laravel-app
 
-      - name: Set Permissions
-        run: chmod -R +x vendor/bin
-
       - name: Create Required Directories
         run: mkdir -p storage/framework/{sessions,views,cache}
 
@@ -148,9 +139,6 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
-
-      - name: Create SQLite Database
-        run: touch database/database.sqlite
 
       - name: Run Unit Tests with Coverage
         env:
@@ -183,9 +171,6 @@ jobs:
           name: laravel-dependencies
           path: laravel-app
 
-      - name: Set Permissions
-        run: chmod -R +x vendor/bin
-
       - name: Create Required Directories
         run: mkdir -p storage/framework/{sessions,views,cache}
 
@@ -194,9 +179,6 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
-
-      - name: Create SQLite Database
-        run: touch database/database.sqlite
 
       - name: Run Feature Tests with Coverage
         env:
@@ -241,9 +223,6 @@ jobs:
         with:
           name: laravel-dependencies
           path: laravel-app
-
-      - name: Set Permissions
-        run: chmod -R +x vendor/bin
 
       - name: Create Required Directories
         run: mkdir -p storage/framework/{sessions,views,cache}
