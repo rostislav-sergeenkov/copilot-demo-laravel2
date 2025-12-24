@@ -25,7 +25,7 @@ class ExpenseController extends Controller
     /**
      * Apply category filter to query if provided.
      *
-     * @param \Illuminate\Database\Eloquent\Builder<Expense> $query
+     * @param  \Illuminate\Database\Eloquent\Builder<Expense>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Expense>
      */
     private function applyCategoryFilter(\Illuminate\Database\Eloquent\Builder $query, ?string $category): \Illuminate\Database\Eloquent\Builder

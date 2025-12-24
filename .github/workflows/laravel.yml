@@ -1,4 +1,4 @@
-name: Laravel Tests
+name: Laravel Quality Gates
 
 on:
   push:

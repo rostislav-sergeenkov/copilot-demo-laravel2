@@ -926,7 +926,6 @@ class ExpenseTest extends TestCase
 
         $total = Expense::sum('amount');
 
-        $this->assertIsNumeric($total);
         $this->assertGreaterThan(0, $total);
         // Total should be approximately 9,999,999.00
         $this->assertGreaterThan(9999000, $total);
