@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  code-style:
+  setup:
     runs-on: ubuntu-latest
     
     defaults:
@@ -22,6 +22,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
           coverage: none
 
       - name: Get Composer Cache Directory
@@ -41,11 +42,45 @@ jobs:
 
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Upload Dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: |
+            laravel-app/vendor
+            laravel-app/bootstrap/cache
+          retention-days: 1
+
+  code-style:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
 
       - name: Run Laravel Pint
         run: ./vendor/bin/pint --test
 
   static-analysis:
+    needs: setup
     runs-on: ubuntu-latest
     
     defaults:
@@ -62,28 +97,17 @@ jobs:
           php-version: '8.4'
           coverage: none
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Create Required Directories
-        run: mkdir -p bootstrap/cache
-
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+          name: laravel-dependencies
+          path: laravel-app
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress
 
   unit-tests:
+    needs: setup
     runs-on: ubuntu-latest
     
     defaults:
@@ -101,23 +125,14 @@ jobs:
           extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
           coverage: xdebug
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          name: laravel-dependencies
+          path: laravel-app
 
       - name: Create Required Directories
-        run: mkdir -p bootstrap/cache storage/framework/{sessions,views,cache}
-
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: mkdir -p storage/framework/{sessions,views,cache}
 
       - name: Copy Environment File
         run: cp .env.example .env
@@ -135,6 +150,7 @@ jobs:
         run: php artisan test --coverage --parallel --min=70 --testsuite=Unit
 
   feature-tests:
+    needs: setup
     runs-on: ubuntu-latest
     
     defaults:
@@ -152,23 +168,14 @@ jobs:
           extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
           coverage: xdebug
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          name: laravel-dependencies
+          path: laravel-app
 
       - name: Create Required Directories
-        run: mkdir -p bootstrap/cache storage/framework/{sessions,views,cache}
-
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: mkdir -p storage/framework/{sessions,views,cache}
 
       - name: Copy Environment File
         run: cp .env.example .env
@@ -186,6 +193,7 @@ jobs:
         run: php artisan test --coverage --parallel --min=60 --testsuite=Feature
 
   e2e-tests:
+    needs: setup
     runs-on: ubuntu-latest
     
     defaults:
@@ -210,23 +218,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: laravel-app/package-lock.json
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          name: laravel-dependencies
+          path: laravel-app
 
       - name: Create Required Directories
-        run: mkdir -p bootstrap/cache storage/framework/{sessions,views,cache}
-
-      - name: Install PHP Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: mkdir -p storage/framework/{sessions,views,cache}
 
       - name: Install Node Dependencies
         run: npm ci
