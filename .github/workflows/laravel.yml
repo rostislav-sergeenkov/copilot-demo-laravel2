@@ -41,7 +41,7 @@ jobs:
         run: mkdir -p bootstrap/cache
 
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
 
       - name: Upload Dependencies
         uses: actions/upload-artifact@v4
@@ -155,7 +155,7 @@ jobs:
       - name: Run Unit Tests with Coverage
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          DB_DATABASE: ':memory:'
         run: php artisan test --coverage --parallel --min=70 --testsuite=Unit
 
   feature-tests:
@@ -201,7 +201,7 @@ jobs:
       - name: Run Feature Tests with Coverage
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          DB_DATABASE: ':memory:'
         run: php artisan test --coverage --parallel --min=60 --testsuite=Feature
 
   e2e-tests:
@@ -229,6 +229,12 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: laravel-app/package-lock.json
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Download Dependencies
         uses: actions/download-artifact@v4
