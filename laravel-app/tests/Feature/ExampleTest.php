@@ -2,19 +2,22 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * A basic test example.
-     * The root URL redirects to /expenses, so we test for redirect.
+     * The root URL now shows the expenses index directly.
      */
     public function test_the_application_returns_a_successful_response(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/expenses');
+        $response->assertStatus(200);
+        $response->assertViewIs('expenses.index');
     }
 }

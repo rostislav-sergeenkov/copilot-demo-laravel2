@@ -1,0 +1,325 @@
+name: Laravel Quality Gates
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Create Required Directories
+        run: mkdir -p bootstrap/cache
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+      - name: Upload Dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: |
+            laravel-app/vendor
+            laravel-app/bootstrap/cache
+          retention-days: 1
+
+  code-style:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
+
+      - name: Set Permissions
+        run: chmod -R +x vendor/bin
+
+      - name: Run Laravel Pint
+        run: ./vendor/bin/pint --test
+
+  static-analysis:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
+
+      - name: Set Permissions
+        run: chmod -R +x vendor/bin
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
+  unit-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
+          coverage: xdebug
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
+
+      - name: Set Permissions
+        run: chmod -R +x vendor/bin
+
+      - name: Create Required Directories
+        run: mkdir -p storage/framework/{sessions,views,cache}
+
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Create SQLite Database
+        run: touch database/database.sqlite
+
+      - name: Run Unit Tests with Coverage
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test --coverage --parallel --min=70 --testsuite=Unit
+
+  feature-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
+          coverage: xdebug
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
+
+      - name: Set Permissions
+        run: chmod -R +x vendor/bin
+
+      - name: Create Required Directories
+        run: mkdir -p storage/framework/{sessions,views,cache}
+
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Create SQLite Database
+        run: touch database/database.sqlite
+
+      - name: Run Feature Tests with Coverage
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test --coverage --parallel --min=60 --testsuite=Feature
+
+  e2e-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: laravel-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, ctype, json, bcmath
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: laravel-app/package-lock.json
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Download Dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-dependencies
+          path: laravel-app
+
+      - name: Set Permissions
+        run: chmod -R +x vendor/bin
+
+      - name: Create Required Directories
+        run: mkdir -p storage/framework/{sessions,views,cache}
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Assets
+        run: npm run build
+
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Create SQLite Database
+        run: touch database/database.sqlite
+
+      - name: Run Migrations
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan migrate --force
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Laravel Server
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan serve &
+
+      - name: Wait for Server
+        run: |
+          timeout 30 bash -c 'until curl -s http://127.0.0.1:8000 > /dev/null; do sleep 1; done'
+
+      - name: Run E2E Tests
+        run: npx playwright test tests/e2e/happy-path.spec.ts --reporter=list
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: laravel-app/playwright-report/
+          retention-days: 7
+
+  quality-gates-passed:
+    name: Quality Gates Passed
+    needs: [code-style, static-analysis, unit-tests, feature-tests, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Check Quality Gates Status
+        run: |
+          if [[ "${{ needs.code-style.result }}" != "success" ]]; then
+            echo "❌ Code Style check failed"
+            exit 1
+          fi
+          if [[ "${{ needs.static-analysis.result }}" != "success" ]]; then
+            echo "❌ Static Analysis check failed"
+            exit 1
+          fi
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "❌ Unit Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.feature-tests.result }}" != "success" ]]; then
+            echo "❌ Feature Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.e2e-tests.result }}" != "success" ]]; then
+            echo "❌ E2E Tests failed"
+            exit 1
+          fi
+          echo "✅ All quality gates passed successfully!"

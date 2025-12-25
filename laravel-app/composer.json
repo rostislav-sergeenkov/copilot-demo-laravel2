@@ -11,13 +11,15 @@
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
+        "brianium/paratest": "^7.16",
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^11.5.3"
+        "phpunit/phpunit": "^12.0"
     },
     "autoload": {
         "psr-4": {
@@ -47,6 +49,39 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "test:all:quick": [
+            "@php artisan config:clear --ansi",
+            "vendor/bin/pint",
+            "vendor/bin/phpstan analyse --memory-limit=2G",
+            "@php artisan test --testsuite=Unit",
+            "@php artisan test --testsuite=Feature",
+            "npx playwright test tests/e2e/happy-path.spec.ts"
+        ],
+        "lint": [
+            "vendor/bin/pint"
+        ],
+        "lint:test": [
+            "vendor/bin/pint --test"
+        ],
+        "analyze": [
+            "vendor/bin/phpstan analyse --memory-limit=2G"
+        ],
+        "test:unit:coverage": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --coverage --parallel --min=70 --testsuite=Unit"
+        ],
+        "test:feature:coverage": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --coverage --parallel --min=60 --testsuite=Feature"
+        ],
+        "test:e2e": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test tests/e2e/happy-path.spec.ts --reporter=list"
+        ],
+        "test:e2e:ui": [
+            "@php artisan config:clear --ansi",
+            "npx playwright test tests/e2e/happy-path.spec.ts--ui"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

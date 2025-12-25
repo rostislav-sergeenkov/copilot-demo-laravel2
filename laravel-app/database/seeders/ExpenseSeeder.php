@@ -13,6 +13,8 @@ class ExpenseSeeder extends Seeder
 
     /**
      * Sample descriptions organized by category.
+     *
+     * @var array<string, array<int, string>>
      */
     protected array $descriptions = [
         'Groceries' => [
@@ -102,8 +104,8 @@ class ExpenseSeeder extends Seeder
         foreach (Expense::CATEGORIES as $category) {
             $categoryDescriptions = $this->descriptions[$category];
 
-            // Generate 7-8 expenses per category (total ~50-56 expenses)
-            $count = rand(7, 8);
+            // Generate 7 expenses per category (total 49 expenses)
+            $count = 7;
 
             for ($i = 0; $i < $count; $i++) {
                 // Random date within the last 3 months
@@ -132,7 +134,7 @@ class ExpenseSeeder extends Seeder
         // Insert all expenses
         Expense::insert($expenses);
 
-        $this->command->info('Created '.count($expenses).' sample expenses.');
+        $this->command->info('Created ' . count($expenses) . ' sample expenses.');
     }
 
     /**

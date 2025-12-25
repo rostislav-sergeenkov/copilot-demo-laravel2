@@ -1,0 +1,25 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - config
+        - database
+        - routes
+        - tests
+
+    # Level 8 is the highest level of strictness
+    # Start with level 5 and gradually increase
+    level: 6
+        
+    excludePaths:
+        - vendor
+        - storage
+        - bootstrap/cache
+
+    # Laravel-specific settings
+    noUnnecessaryCollectionCall: true
+    checkModelProperties: true
+    checkOctaneCompatibility: false

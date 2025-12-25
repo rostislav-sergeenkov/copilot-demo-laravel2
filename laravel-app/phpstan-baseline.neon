@@ -1,0 +1,67 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Expense\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Expense.php
+
+		-
+			message: '#^PHPDoc type string of property Database\\Factories\\ExpenseFactory\:\:\$model is not covariant with PHPDoc type class\-string\<App\\Models\\Expense\> of overridden property Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Expense\>\:\:\$model\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: database/factories/ExpenseFactory.php
+
+		-
+			message: '#^Return type \(array\<string, mixed\>\) of method Database\\Factories\\ExpenseFactory\:\:definition\(\) should be compatible with return type \(array\<model property of App\\Models\\Expense, mixed\>\) of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Expense\>\:\:definition\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: database/factories/ExpenseFactory.php
+
+		-
+			message: '#^Return type \(array\<string, mixed\>\) of method Database\\Factories\\UserFactory\:\:definition\(\) should be compatible with return type \(array\<model property of App\\Models\\User, mixed\>\) of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\User\>\:\:definition\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: database/factories/UserFactory.php
+
+		-
+			message: '#^Parameter \#1 \$min of function rand expects int, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: database/seeders/ExpenseSeeder.php
+
+		-
+			message: '#^Parameter \#2 \$max of function rand expects int, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: database/seeders/ExpenseSeeder.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with int will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/DatabaseTest.php
+
+		-
+			message: '#^Called ''count'' on Laravel collection, but could have been retrieved as a query\.$#'
+			identifier: larastan.noUnnecessaryCollectionCall
+			count: 1
+			path: tests/Feature/DatabaseTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/ExampleTest.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Expense\:\:\$total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Unit/Models/ExpenseTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with numeric\-string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Models/ExpenseTest.php

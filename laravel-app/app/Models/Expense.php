@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expense extends Model
 {
+    /** @use HasFactory<\Database\Factories\ExpenseFactory> */
     use HasFactory, SoftDeletes;
 
     /**
@@ -55,7 +56,7 @@ class Expense extends Model
         return [
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
-            'category' => ['required', 'string', 'in:'.implode(',', self::CATEGORIES)],
+            'category' => ['required', 'string', 'in:' . implode(',', self::CATEGORIES)],
             'date' => ['required', 'date', 'before_or_equal:today'],
         ];
     }

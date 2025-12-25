@@ -14,6 +14,8 @@ class ExpenseController extends Controller
 {
     /**
      * Get the available expense categories.
+     *
+     * @return array<int, string>
      */
     private function getCategories(): array
     {
@@ -22,8 +24,11 @@ class ExpenseController extends Controller
 
     /**
      * Apply category filter to query if provided.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Expense>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Expense>
      */
-    private function applyCategoryFilter($query, ?string $category)
+    private function applyCategoryFilter(\Illuminate\Database\Eloquent\Builder $query, ?string $category): \Illuminate\Database\Eloquent\Builder
     {
         if ($category && in_array($category, Expense::CATEGORIES)) {
             $query->where('category', $category);
@@ -104,7 +109,7 @@ class ExpenseController extends Controller
     public function monthly(Request $request): View
     {
         $month = $request->query('month')
-            ? Carbon::parse($request->query('month').'-01')
+            ? Carbon::parse($request->query('month') . '-01')
             : Carbon::today()->startOfMonth();
 
         $category = $request->query('category');

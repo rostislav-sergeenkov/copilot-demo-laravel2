@@ -3,9 +3,8 @@
 use App\Http\Controllers\ExpenseController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('expenses.index');
-});
+// Root route now directly shows expenses index
+Route::get('/', [ExpenseController::class, 'index'])->name('home');
 
 // Custom expense views (must be before resource routes)
 Route::get('expenses/daily', [ExpenseController::class, 'daily'])->name('expenses.daily');
