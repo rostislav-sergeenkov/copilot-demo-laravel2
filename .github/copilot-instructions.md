@@ -82,3 +82,78 @@ Custom routes (`/expenses/daily`, `/expenses/monthly`) must be defined **before*
 - Laravel Pint enforces PSR-12 style
 - Use typed properties and return types
 - PHPDoc blocks on public methods
+
+## Authentication (Feature 002-user-auth)
+
+**Pattern**: Session-based authentication with custom middleware (no Eloquent User model)
+
+### Configuration
+- **Credentials**: Stored in environment variables `USERNAME` and `PASSWORD`
+- **Session flag**: `session('authenticated')` boolean indicates auth state
+- **Middleware**: `auth.custom` alias for `App\Http\Middleware\Authenticate`
+- **Rate limiting**: 5 attempts per username OR 10 per IP in 15 minutes
+
+### Key Components
+- **AuthController** (`app/Http/Controllers/AuthController.php`):
+  - `showLogin()` - Display login form
+  - `login()` - Validate credentials using `hash_equals()`, check rate limits
+  - `logout()` - Clear session with `$request->session()->flush()`
+
+- **Authenticate Middleware** (`app/Http/Middleware/Authenticate.php`):
+  - Checks `session('authenticated') === true` on every protected request
+  - Redirects to `/login` if not authenticated
+
+- **Login View** (`resources/views/auth/login.blade.php`):
+  - Material UI styled form
+  - Username and password fields
+  - CSRF protection via `@csrf`
+
+### Security Patterns
+- **Timing-safe comparison**: Always use `hash_equals()` for password validation
+  ```php
+  $valid = hash_equals(env('USERNAME', ''), $username) 
+        && hash_equals(env('PASSWORD'), $password);
+  ```
+
+- **Rate limiting** with Laravel's RateLimiter:
+  ```php
+  $userKey = "login-user:$username";
+  $ipKey = "login-ip:$ip";
+  
+  if (RateLimiter::tooManyAttempts($userKey, 5)) {
+      // Return error
+  }
+  
+  RateLimiter::hit($userKey, 15 * 60); // 15 minutes
+  RateLimiter::clear($userKey); // On successful login
+  ```
+
+- **Custom Blade directive**: `@auth` checks `session('authenticated')`
+  ```php
+  // In AppServiceProvider
+  Blade::if('auth', fn() => session('authenticated') === true);
+  ```
+
+### Route Protection
+```php
+// Auth routes (before middleware group)
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Protected routes
+Route::middleware(['auth.custom'])->group(function () {
+    Route::resource('expenses', ExpenseController::class);
+    // ... other protected routes
+});
+```
+
+### Testing
+- **Environment**: Use `.env.testing` with `USERNAME=testuser` / `PASSWORD=testpass`
+- **Feature tests**: Add `session(['authenticated' => true])` to setUp() for protected route tests
+- **Auth tests**: Test login/logout flows, rate limiting, unauthenticated access blocking
+
+### References
+- Specification: `specs/002-user-auth/spec.md`
+- Implementation plan: `specs/002-user-auth/plan.md`
+- Developer guide: `specs/002-user-auth/quickstart.md`
