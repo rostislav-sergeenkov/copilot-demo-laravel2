@@ -16,6 +16,13 @@ class DatabaseTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Authenticate for protected routes
+        session(['authenticated' => true]);
+    }
+
     // ==========================================
     // Schema Tests
     // ==========================================
