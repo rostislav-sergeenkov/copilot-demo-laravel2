@@ -292,3 +292,34 @@ jobs:
           name: playwright-report
           path: laravel-app/playwright-report/
           retention-days: 7
+
+  quality-gates-passed:
+    name: Quality Gates Passed
+    needs: [code-style, static-analysis, unit-tests, feature-tests, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Check Quality Gates Status
+        run: |
+          if [[ "${{ needs.code-style.result }}" != "success" ]]; then
+            echo "❌ Code Style check failed"
+            exit 1
+          fi
+          if [[ "${{ needs.static-analysis.result }}" != "success" ]]; then
+            echo "❌ Static Analysis check failed"
+            exit 1
+          fi
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "❌ Unit Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.feature-tests.result }}" != "success" ]]; then
+            echo "❌ Feature Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.e2e-tests.result }}" != "success" ]]; then
+            echo "❌ E2E Tests failed"
+            exit 1
+          fi
+          echo "✅ All quality gates passed successfully!"
