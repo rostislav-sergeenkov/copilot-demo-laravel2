@@ -81,7 +81,7 @@
         ],
         "test:e2e:ui": [
             "@php artisan config:clear --ansi",
-            "npx playwright test tests/e2e/happy-path.spec.ts--ui"
+            "npx playwright test tests/e2e/happy-path.spec.ts --ui"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

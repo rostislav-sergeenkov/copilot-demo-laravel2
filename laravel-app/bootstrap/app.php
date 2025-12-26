@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
         'auth.custom' => \App\Http\Middleware\Authenticate::class,
     ]);
+
+    // Exclude test authentication endpoint from CSRF protection
+    $middleware->validateCsrfTokens(except: [
+        '/test/*',
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

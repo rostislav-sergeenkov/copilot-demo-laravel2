@@ -2,12 +2,18 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\TestAuthController;
 use Illuminate\Support\Facades\Route;
 
 // Public authentication routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Test-only authentication endpoint (only available in local/testing environments)
+if (app()->environment(['local', 'testing'])) {
+  Route::post('/test/auth', [TestAuthController::class, 'authenticate'])->name('test.auth');
+}
 
 // Protected routes (require authentication)
 Route::middleware(['auth.custom'])->group(function () {

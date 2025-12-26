@@ -4,6 +4,84 @@ import { Page, expect } from '@playwright/test';
  * Test utilities and helper functions for Expense Tracker E2E tests
  */
 
+/**
+ * Clear all expenses from the database through the UI
+ */
+export async function clearAllExpenses(page: Page) {
+  await page.goto('/');
+
+  // Keep deleting expenses while they exist (with max iterations to prevent infinite loops)
+  let hasExpenses = true;
+  let iterations = 0;
+  const maxIterations = 100; // Safety limit
+  
+  while (hasExpenses && iterations < maxIterations) {
+    iterations++;
+    
+    // Check if there are any expense rows
+    const expenseRows = page.locator('tbody tr');
+    const count = await expenseRows.count();
+
+    if (count === 0) {
+      hasExpenses = false;
+      break;
+    }
+
+    // Delete the first expense
+    const firstDeleteButton = page.locator('button[title="Delete expense"]').first();
+    if (await firstDeleteButton.count() > 0) {
+      await firstDeleteButton.click();
+
+      // Wait for modal and confirm
+      const modal = page.locator('#deleteModal.active');
+      await expect(modal).toBeVisible({ timeout: 5000 });
+      await page.locator('#deleteForm button[type="submit"]').click();
+
+      // Wait for URL to reload (faster than networkidle)
+      await page.waitForURL(/\/expenses$/, { timeout: 10000 });
+      // Give time for the row to be removed from DOM
+      await page.waitForTimeout(100);
+    } else {
+      hasExpenses = false;
+    }
+  }
+}
+
+/**
+ * Authenticate using the standard login form
+ * Uses TEST_PASSWORD from environment (plain text for e2e testing only)
+ */
+export async function login(page: Page) {
+  const username = process.env.AUTH_USERNAME;
+  const password = process.env.TEST_PASSWORD;
+
+  if (!username || !password) {
+    throw new Error(
+      'AUTH_USERNAME and TEST_PASSWORD must be set in .env file. ' +
+      `Found: AUTH_USERNAME=${username ? 'set' : 'missing'}, TEST_PASSWORD=${password ? 'set' : 'missing'}`
+    );
+  }
+
+  // Navigate to login page
+  await page.goto('/login', { waitUntil: 'networkidle' });
+
+  // Verify we're on the login page
+  await expect(page.locator('h1:has-text("Expense Tracker")')).toBeVisible();
+
+  // Fill in login form
+  await page.fill('input[name="username"]', username);
+  await page.fill('input[name="password"]', password);
+
+  // Submit form
+  await page.click('button[type="submit"]');
+
+  // Wait for redirect to expenses page
+  await page.waitForURL(/\/expenses$/, { timeout: 10000 });
+
+  // Verify we reached the expenses page
+  await expect(page).toHaveURL(/\/expenses$/, { timeout: 2000 });
+}
+
 export const CATEGORIES = [
   'Groceries',
   'Transport',
@@ -37,9 +115,10 @@ export async function createExpense(page: Page, expense: ExpenseData) {
   await page.selectOption('select[name="category"]', expense.category);
   await page.fill('input[name="date"]', expense.date);
   
-  await page.click('button[type="submit"]');
+  // Click the submit button within the form (not the logout button in nav)
+  await page.click('form[action*="expenses"] button[type="submit"]');
   
-  // Wait for redirect to index page
+  // Wait for redirect to index page  
   await expect(page).toHaveURL(/\/expenses$/);
 }
 
@@ -47,11 +126,20 @@ export async function createExpense(page: Page, expense: ExpenseData) {
  * Delete an expense by description
  */
 export async function deleteExpense(page: Page, description: string) {
-  const row = page.locator(`tr:has-text("${description}")`);
-  await row.locator('button:has-text("Delete")').click();
+  const row = page.locator(`tr:has-text("${description}")`).first();
+
+  // Click delete button to open modal
+  await row.locator('button[title="Delete expense"]').click();
+
+  // Wait for modal to be visible
+  const modal = page.locator('#deleteModal.active');
+  await expect(modal).toBeVisible();
+
+  // Click the confirm delete button in the modal
+  await page.locator('#deleteForm button[type="submit"]').click();
   
-  // Confirm deletion in dialog
-  page.on('dialog', dialog => dialog.accept());
+  // Wait for page reload after deletion
+  await page.waitForLoadState('networkidle');
 }
 
 /**
@@ -79,6 +167,8 @@ export async function navigateToMonthlyView(page: Page, yearMonth?: string) {
  */
 export async function applyFilter(page: Page, category: Category | 'All Categories') {
   await page.selectOption('select[name="category"]', category);
+  // Wait for the page to reload with filtered results
+  await page.waitForLoadState('networkidle');
 }
 
 /**
