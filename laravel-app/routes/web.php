@@ -12,18 +12,18 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Test-only authentication endpoint (only available in local/testing environments)
 if (app()->environment(['local', 'testing'])) {
-  Route::post('/test/auth', [TestAuthController::class, 'authenticate'])->name('test.auth');
+    Route::post('/test/auth', [TestAuthController::class, 'authenticate'])->name('test.auth');
 }
 
 // Protected routes (require authentication)
 Route::middleware(['auth.custom'])->group(function () {
-  // Root route redirects to expenses
-  Route::get('/', [ExpenseController::class, 'index'])->name('home');
+    // Root route redirects to expenses
+    Route::get('/', [ExpenseController::class, 'index'])->name('home');
 
-  // Custom expense views (must be before resource routes)
-  Route::get('expenses/daily', [ExpenseController::class, 'daily'])->name('expenses.daily');
-  Route::get('expenses/monthly', [ExpenseController::class, 'monthly'])->name('expenses.monthly');
+    // Custom expense views (must be before resource routes)
+    Route::get('expenses/daily', [ExpenseController::class, 'daily'])->name('expenses.daily');
+    Route::get('expenses/monthly', [ExpenseController::class, 'monthly'])->name('expenses.monthly');
 
-  // Resource routes for expenses
-  Route::resource('expenses', ExpenseController::class);
+    // Resource routes for expenses
+    Route::resource('expenses', ExpenseController::class);
 });

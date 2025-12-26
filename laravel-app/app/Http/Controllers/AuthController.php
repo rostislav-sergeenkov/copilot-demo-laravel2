@@ -61,7 +61,7 @@ class AuthController extends Controller
         // Credential validation with hashed password
         $envUsername = env('AUTH_USERNAME', '');
         $envPasswordHash = env('PASSWORD_HASH', '');
-        
+
         $validUsername = hash_equals($envUsername, $username);
         $validPassword = Hash::check($password, $envPasswordHash);
 

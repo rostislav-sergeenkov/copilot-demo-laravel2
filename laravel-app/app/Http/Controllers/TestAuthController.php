@@ -34,10 +34,10 @@ class TestAuthController extends Controller
             if (hash_equals($envUsername, $username) && hash_equals($envPasswordHash, $passwordHash)) {
                 // Set authenticated session
                 $request->session()->put('authenticated', true);
-                
+
                 // Regenerate session ID for security
                 $request->session()->regenerate();
-                
+
                 // Force save to ensure session is written immediately
                 $request->session()->save();
 
