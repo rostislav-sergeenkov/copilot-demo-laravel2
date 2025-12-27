@@ -43,12 +43,6 @@ parameters:
 			path: tests/Feature/DatabaseTest.php
 
 		-
-			message: '#^Called ''count'' on Laravel collection, but could have been retrieved as a query\.$#'
-			identifier: larastan.noUnnecessaryCollectionCall
-			count: 1
-			path: tests/Feature/DatabaseTest.php
-
-		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1

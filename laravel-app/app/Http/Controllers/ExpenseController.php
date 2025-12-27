@@ -143,10 +143,12 @@ class ExpenseController extends Controller
         $dailyBreakdown = $expenses->groupBy(function ($expense) {
             return $expense->date->format('Y-m-d');
         })->map(function ($items) {
+            $firstExpense = $items->first();
+
             return [
                 'total' => $items->sum('amount'),
                 'count' => $items->count(),
-                'date' => $items->first()->date,
+                'date' => $firstExpense ? $firstExpense->date : null,
             ];
         })->sortByDesc(function ($item) {
             return $item['date'];

@@ -268,7 +268,9 @@ class ExpenseTest extends TestCase
         ]);
 
         // Should be rounded/truncated to 2 decimal places
-        $this->assertEquals('123.46', $expense->fresh()->amount);
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $this->assertEquals('123.46', $freshExpense->amount);
     }
 
     /**
@@ -286,8 +288,10 @@ class ExpenseTest extends TestCase
             'amount' => 75.00,
         ]);
 
-        $this->assertEquals('Updated Description', $expense->fresh()->description);
-        $this->assertEquals('75.00', $expense->fresh()->amount);
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $this->assertEquals('Updated Description', $freshExpense->description);
+        $this->assertEquals('75.00', $freshExpense->amount);
     }
 
     /**
@@ -412,17 +416,25 @@ class ExpenseTest extends TestCase
      */
     public function test_amount_stores_two_decimal_places(): void
     {
-        $expense = Expense::factory()->create(['amount' => 1.00]);
-        $this->assertEquals('1.00', $expense->fresh()->amount);
+        $expense1 = Expense::factory()->create(['amount' => 1.00]);
+        $fresh1 = $expense1->fresh();
+        $this->assertNotNull($fresh1);
+        $this->assertEquals('1.00', $fresh1->amount);
 
-        $expense = Expense::factory()->create(['amount' => 1.50]);
-        $this->assertEquals('1.50', $expense->fresh()->amount);
+        $expense2 = Expense::factory()->create(['amount' => 1.50]);
+        $fresh2 = $expense2->fresh();
+        $this->assertNotNull($fresh2);
+        $this->assertEquals('1.50', $fresh2->amount);
 
-        $expense = Expense::factory()->create(['amount' => 1.23]);
-        $this->assertEquals('1.23', $expense->fresh()->amount);
+        $expense3 = Expense::factory()->create(['amount' => 1.23]);
+        $fresh3 = $expense3->fresh();
+        $this->assertNotNull($fresh3);
+        $this->assertEquals('1.23', $fresh3->amount);
 
-        $expense = Expense::factory()->create(['amount' => 999.99]);
-        $this->assertEquals('999.99', $expense->fresh()->amount);
+        $expense4 = Expense::factory()->create(['amount' => 999.99]);
+        $fresh4 = $expense4->fresh();
+        $this->assertNotNull($fresh4);
+        $this->assertEquals('999.99', $fresh4->amount);
     }
 
     /**
@@ -435,8 +447,12 @@ class ExpenseTest extends TestCase
         ]);
 
         // Laravel's decimal:2 cast should handle rounding
-        $freshAmount = $expense->fresh()->amount;
-        $this->assertEquals(2, strlen(substr(strrchr($freshAmount, '.'), 1)), 'Amount should have exactly 2 decimal places');
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $freshAmount = $freshExpense->amount;
+        $decimalPart = strrchr($freshAmount, '.');
+        $this->assertNotFalse($decimalPart);
+        $this->assertEquals(2, strlen(substr($decimalPart, 1)), 'Amount should have exactly 2 decimal places');
     }
 
     /**
@@ -563,7 +579,7 @@ class ExpenseTest extends TestCase
 
         $total = Expense::sum('amount');
 
-        $this->assertEquals('61.50', number_format($total, 2, '.', ''));
+        $this->assertEquals('61.50', number_format((float) $total, 2, '.', ''));
     }
 
     /**
@@ -579,7 +595,7 @@ class ExpenseTest extends TestCase
 
         $dailyTotal = Expense::whereDate('date', $targetDate)->sum('amount');
 
-        $this->assertEquals('60.00', number_format($dailyTotal, 2, '.', ''));
+        $this->assertEquals('60.00', number_format((float) $dailyTotal, 2, '.', ''));
     }
 
     /**
@@ -597,7 +613,7 @@ class ExpenseTest extends TestCase
             ->whereMonth('date', Carbon::today()->month)
             ->sum('amount');
 
-        $this->assertEquals('250.00', number_format($monthlyTotal, 2, '.', ''));
+        $this->assertEquals('250.00', number_format((float) $monthlyTotal, 2, '.', ''));
     }
 
     /**
@@ -628,11 +644,12 @@ class ExpenseTest extends TestCase
 
         $breakdown = Expense::selectRaw('category, SUM(amount) as total')
             ->groupBy('category')
+            ->get()
             ->pluck('total', 'category');
 
-        $this->assertEquals('40.00', number_format($breakdown['Groceries'], 2, '.', ''));
-        $this->assertEquals('30.00', number_format($breakdown['Transport'], 2, '.', ''));
-        $this->assertEquals('30.00', number_format($breakdown['Entertainment'], 2, '.', ''));
+        $this->assertEquals('40.00', number_format((float) $breakdown['Groceries'], 2, '.', ''));
+        $this->assertEquals('30.00', number_format((float) $breakdown['Transport'], 2, '.', ''));
+        $this->assertEquals('30.00', number_format((float) $breakdown['Entertainment'], 2, '.', ''));
     }
 
     /**
@@ -698,6 +715,9 @@ class ExpenseTest extends TestCase
 
         $expenses = Expense::orderBy('date', 'desc')->get();
 
+        $this->assertNotNull($expenses[0]);
+        $this->assertNotNull($expenses[1]);
+        $this->assertNotNull($expenses[2]);
         $this->assertEquals('Third', $expenses[0]->description);
         $this->assertEquals('Second', $expenses[1]->description);
         $this->assertEquals('First', $expenses[2]->description);
@@ -714,6 +734,9 @@ class ExpenseTest extends TestCase
 
         $expenses = Expense::orderBy('date', 'asc')->get();
 
+        $this->assertNotNull($expenses[0]);
+        $this->assertNotNull($expenses[1]);
+        $this->assertNotNull($expenses[2]);
         $this->assertEquals('First', $expenses[0]->description);
         $this->assertEquals('Second', $expenses[1]->description);
         $this->assertEquals('Third', $expenses[2]->description);
@@ -730,6 +753,9 @@ class ExpenseTest extends TestCase
 
         $expenses = Expense::orderBy('amount', 'asc')->get();
 
+        $this->assertNotNull($expenses[0]);
+        $this->assertNotNull($expenses[1]);
+        $this->assertNotNull($expenses[2]);
         $this->assertEquals('Low', $expenses[0]->description);
         $this->assertEquals('Medium', $expenses[1]->description);
         $this->assertEquals('High', $expenses[2]->description);
@@ -805,7 +831,7 @@ class ExpenseTest extends TestCase
 
         $total = Expense::sum('amount');
 
-        $this->assertEquals('500.00', number_format($total, 2, '.', ''));
+        $this->assertEquals('500.00', number_format((float) $total, 2, '.', ''));
         $this->assertCount(50, Expense::all());
     }
 
@@ -942,12 +968,16 @@ class ExpenseTest extends TestCase
         // Simulate concurrent updates
         $expense1 = Expense::find($expense->id);
         $expense2 = Expense::find($expense->id);
+        $this->assertNotNull($expense1);
+        $this->assertNotNull($expense2);
 
         $expense1->update(['amount' => 200.00]);
         $expense2->update(['amount' => 300.00]);
 
         // Last update should win
-        $this->assertEquals('300.00', $expense->fresh()->amount);
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $this->assertEquals('300.00', $freshExpense->amount);
     }
 
     /**
@@ -1019,7 +1049,9 @@ class ExpenseTest extends TestCase
 
         $expense->update(['amount' => 678.90]);
 
-        $this->assertEquals('678.90', $expense->fresh()->amount);
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $this->assertEquals('678.90', $freshExpense->amount);
     }
 
     /**
@@ -1036,7 +1068,10 @@ class ExpenseTest extends TestCase
         $this->assertNull(Expense::find($expenseId));
 
         // Should be retrievable with trashed
-        $this->assertNotNull(Expense::withTrashed()->find($expenseId));
-        $this->assertNotNull($expense->fresh()->deleted_at);
+        $trashedExpense = Expense::withTrashed()->find($expenseId);
+        $this->assertNotNull($trashedExpense);
+        $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
+        $this->assertNotNull($freshExpense->deleted_at);
     }
 }

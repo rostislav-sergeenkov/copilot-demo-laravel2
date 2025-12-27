@@ -55,9 +55,11 @@ class UpdateExpenseRequestTest extends TestCase
         $request = new UpdateExpenseRequest;
         $rules = $request->rules();
 
-        $this->assertContains('required', $rules['description']);
-        $this->assertContains('string', $rules['description']);
-        $this->assertContains('max:255', $rules['description']);
+        /** @var array<int|string, mixed> $descriptionRules */
+        $descriptionRules = is_array($rules['description']) ? $rules['description'] : [$rules['description']];
+        $this->assertContains('required', $descriptionRules);
+        $this->assertContains('string', $descriptionRules);
+        $this->assertContains('max:255', $descriptionRules);
     }
 
     /**
@@ -68,10 +70,12 @@ class UpdateExpenseRequestTest extends TestCase
         $request = new UpdateExpenseRequest;
         $rules = $request->rules();
 
-        $this->assertContains('required', $rules['amount']);
-        $this->assertContains('numeric', $rules['amount']);
-        $this->assertContains('min:0.01', $rules['amount']);
-        $this->assertContains('max:999999.99', $rules['amount']);
+        /** @var array<int|string, mixed> $amountRules */
+        $amountRules = is_array($rules['amount']) ? $rules['amount'] : [$rules['amount']];
+        $this->assertContains('required', $amountRules);
+        $this->assertContains('numeric', $amountRules);
+        $this->assertContains('min:0.01', $amountRules);
+        $this->assertContains('max:999999.99', $amountRules);
     }
 
     /**
@@ -82,11 +86,13 @@ class UpdateExpenseRequestTest extends TestCase
         $request = new UpdateExpenseRequest;
         $rules = $request->rules();
 
-        $this->assertContains('required', $rules['category']);
-        $this->assertContains('string', $rules['category']);
+        /** @var array<int|string, mixed> $categoryRules */
+        $categoryRules = is_array($rules['category']) ? $rules['category'] : [$rules['category']];
+        $this->assertContains('required', $categoryRules);
+        $this->assertContains('string', $categoryRules);
 
         // Verify the 'in' rule contains all categories
-        $inRule = collect($rules['category'])->first(fn ($rule) => str_starts_with($rule, 'in:'));
+        $inRule = collect($categoryRules)->first(fn($rule) => is_string($rule) && str_starts_with($rule, 'in:'));
         $this->assertNotNull($inRule);
 
         foreach (Expense::CATEGORIES as $category) {
@@ -102,9 +108,11 @@ class UpdateExpenseRequestTest extends TestCase
         $request = new UpdateExpenseRequest;
         $rules = $request->rules();
 
-        $this->assertContains('required', $rules['date']);
-        $this->assertContains('date', $rules['date']);
-        $this->assertContains('before_or_equal:today', $rules['date']);
+        /** @var array<int|string, mixed> $dateRules */
+        $dateRules = is_array($rules['date']) ? $rules['date'] : [$rules['date']];
+        $this->assertContains('required', $dateRules);
+        $this->assertContains('date', $dateRules);
+        $this->assertContains('before_or_equal:today', $dateRules);
     }
 
     /**

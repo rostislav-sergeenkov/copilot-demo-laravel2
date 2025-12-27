@@ -61,7 +61,7 @@
             "vendor/bin/pint --test"
         ],
         "analyze": [
-            "vendor/bin/phpstan analyse --memory-limit=2G --level=6"
+            "vendor/bin/phpstan analyse --memory-limit=2G --level=8"
         ],
         "test:unit:coverage": [
             "@php artisan test --coverage --parallel --min=70 --testsuite=Unit"

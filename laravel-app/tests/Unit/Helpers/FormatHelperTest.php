@@ -178,7 +178,12 @@ class FormatHelperTest extends TestCase
      */
     private function formatDate(string $date, string $format = 'F j, Y'): string
     {
-        return date($format, strtotime($date));
+        $timestamp = strtotime($date);
+        if ($timestamp === false) {
+            throw new \InvalidArgumentException("Invalid date format: {$date}");
+        }
+
+        return date($format, $timestamp);
     }
 
     /**

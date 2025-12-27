@@ -115,8 +115,11 @@ class ExpenseControllerTest extends TestCase
         $response = $this->get('/expenses');
 
         $content = $response->getContent();
+        $this->assertIsString($content);
         $newerPos = strpos($content, 'Newer Expense');
         $olderPos = strpos($content, 'Older Expense');
+        $this->assertNotFalse($newerPos);
+        $this->assertNotFalse($olderPos);
 
         $this->assertLessThan($olderPos, $newerPos, 'Newer expense should appear before older expense');
     }
@@ -129,7 +132,9 @@ class ExpenseControllerTest extends TestCase
 
         $response->assertStatus(200);
         // Should have pagination links
-        $this->assertStringContainsString('pagination', $response->getContent());
+        $content = $response->getContent();
+        $this->assertIsString($content);
+        $this->assertStringContainsString('pagination', $content);
     }
 
     public function test_index_shows_empty_state_when_no_expenses(): void
@@ -576,6 +581,7 @@ class ExpenseControllerTest extends TestCase
         $this->post('/expenses', $data);
 
         $expense = Expense::latest()->first();
+        $this->assertNotNull($expense);
         $this->assertNotNull($expense->created_at);
         $this->assertNotNull($expense->updated_at);
     }
@@ -592,6 +598,7 @@ class ExpenseControllerTest extends TestCase
         $this->post('/expenses', $data);
 
         $expense = Expense::latest()->first();
+        $this->assertNotNull($expense);
         $this->assertEquals('50.50', $expense->amount);
     }
 
