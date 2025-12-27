@@ -10,6 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // Skip sessions table creation in testing environment
+        // Tests use array driver which doesn't require database storage
+        if (app()->environment('testing')) {
+            return;
+        }
+
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

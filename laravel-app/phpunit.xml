@@ -31,5 +31,9 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Authentication test credentials -->
+        <env name="AUTH_USERNAME" value="testuser"/>
+        <!-- PASSWORD_HASH for 'testpass' using bcrypt with BCRYPT_ROUNDS=4 -->
+        <env name="PASSWORD_HASH" value="$2y$04$LdYrQF.z5RFbmw1CjsVJquP5vbKy2P6yLgQSzD8R3oZfrR4yAtPly"/>
     </php>
 </phpunit>
