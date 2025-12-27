@@ -28,8 +28,8 @@ class TestAuthController extends Controller
             $passwordHash = $validated['password_hash'];
 
             // Verify credentials match environment
-            $envUsername = env('AUTH_USERNAME', '');
-            $envPasswordHash = env('PASSWORD_HASH', '');
+            $envUsername = config('auth.custom.username', '');
+            $envPasswordHash = config('auth.custom.password_hash', '');
 
             if (hash_equals($envUsername, $username) && hash_equals($envPasswordHash, $passwordHash)) {
                 // Set authenticated session

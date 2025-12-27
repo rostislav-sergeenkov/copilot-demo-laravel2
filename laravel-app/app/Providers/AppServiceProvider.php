@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Validate required authentication environment variables
-        if (empty(env('AUTH_USERNAME')) || empty(env('PASSWORD_HASH'))) {
+        if (empty(config('auth.custom.username')) || empty(config('auth.custom.password_hash'))) {
             throw new \RuntimeException(
                 'AUTH_USERNAME and PASSWORD_HASH environment variables are required. ' .
                     'Configure them in .env file.'

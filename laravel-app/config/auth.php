@@ -112,4 +112,19 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Authentication Credentials
+    |--------------------------------------------------------------------------
+    |
+    | These credentials are used for the custom session-based authentication
+    | system. The password hash should be generated using Hash::make().
+    |
+    */
+
+    'custom' => [
+        'username' => env('AUTH_USERNAME', ''),
+        'password_hash' => env('PASSWORD_HASH', ''),
+    ],
+
 ];

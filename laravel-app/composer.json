@@ -46,17 +46,13 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
-        "test": [
-            "@php artisan config:clear --ansi",
-            "@php artisan test"
-        ],
-        "test:all:quick": [
-            "@php artisan config:clear --ansi",
-            "vendor/bin/pint",
-            "vendor/bin/phpstan analyse --memory-limit=2G",
-            "@php artisan test --testsuite=Unit",
-            "@php artisan test --testsuite=Feature",
-            "npx playwright test tests/e2e/happy-path.spec.ts"
+        "test:all": [
+            "@lint",
+            "@lint:test",
+            "@analyze",
+            "@test:unit:coverage",
+            "@test:feature:coverage",
+            "@test:e2e"
         ],
         "lint": [
             "vendor/bin/pint"
@@ -65,23 +61,21 @@
             "vendor/bin/pint --test"
         ],
         "analyze": [
-            "vendor/bin/phpstan analyse --memory-limit=2G"
+            "vendor/bin/phpstan analyse --memory-limit=2G --level=6"
         ],
         "test:unit:coverage": [
-            "@php artisan config:clear --ansi",
             "@php artisan test --coverage --parallel --min=70 --testsuite=Unit"
         ],
         "test:feature:coverage": [
-            "@php artisan config:clear --ansi",
             "@php artisan test --coverage --parallel --min=60 --testsuite=Feature"
         ],
         "test:e2e": [
             "@php artisan config:clear --ansi",
-            "npx playwright test tests/e2e/happy-path.spec.ts --reporter=list"
+            "npx playwright test --reporter=list"
         ],
         "test:e2e:ui": [
             "@php artisan config:clear --ansi",
-            "npx playwright test tests/e2e/happy-path.spec.ts --ui"
+            "npx playwright test --ui"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
