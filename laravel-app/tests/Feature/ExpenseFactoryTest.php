@@ -64,7 +64,7 @@ class ExpenseFactoryTest extends TestCase
         $expense = Expense::factory()->today()->create();
 
         $this->assertEquals(Carbon::today()->format('Y-m-d'), $expense->date->format('Y-m-d'));
-        
+
         // Verify in database - date column stores date as Y-m-d format
         $retrieved = Expense::find($expense->id);
         $this->assertNotNull($retrieved);
@@ -78,7 +78,7 @@ class ExpenseFactoryTest extends TestCase
     {
         foreach (Expense::CATEGORIES as $category) {
             $expense = Expense::factory()->create(['category' => $category]);
-            
+
             $this->assertEquals($category, $expense->category);
             $this->assertDatabaseHas('expenses', [
                 'id' => $expense->id,

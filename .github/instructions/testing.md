@@ -61,7 +61,7 @@ Comprehensive testing strategy using the **Testing Trophy** approach for integra
 **Location**: `tests/Unit/`  
 **Commands**:
   - `php artisan test --testsuite=Unit` - Run unit tests
-  - `composer test:unit:coverage` - Run with coverage report (min 70%)  
+  - `composer test:unit:coverage` - Run with coverage report (min 70%)
 **Purpose**: Test pure business logic in isolation  
 **Pattern**: NO database, NO HTTP, NO external services
 

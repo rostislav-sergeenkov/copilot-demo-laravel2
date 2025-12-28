@@ -47,7 +47,7 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $relativePath = str_replace([$directory, '.php', '/'], ['', '', '\\'], $file);
-            $className = $namespace.ltrim($relativePath, '\\');
+            $className = $namespace . ltrim($relativePath, '\\');
 
             if (class_exists($className) || interface_exists($className)) {
                 $classes[] = $className;
@@ -309,7 +309,7 @@ final class ArchitectureTest extends TestCase
                 // Skip if it's part of a longer word like 'array('
                 if ($debugFunction === 'ray(' && str_contains($content, 'array(')) {
                     // Only fail if we find standalone ray(
-                    $pattern = '/(?<!ar)ray\(/'; 
+                    $pattern = '/(?<!ar)ray\(/';
                     if (preg_match($pattern, $content)) {
                         $this->fail("File {$file} should not contain debug statement: ray()");
                     }
@@ -332,7 +332,7 @@ final class ArchitectureTest extends TestCase
 
         foreach ($classes as $class) {
             $reflection = new ReflectionClass($class);
-            
+
             // Models should have either $fillable or $guarded property
             $hasFillable = $reflection->hasProperty('fillable');
             $hasGuarded = $reflection->hasProperty('guarded');
@@ -391,14 +391,14 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             // Check for controller references
             $this->assertStringNotContainsString(
                 'App\\Http\\Controllers',
                 $content,
                 "Model file {$file} should not reference Controllers. Models should be dumb data structures."
             );
-            
+
             $this->assertStringNotContainsString(
                 'use App\Http\Controllers',
                 $content,
@@ -423,13 +423,13 @@ final class ArchitectureTest extends TestCase
             $testedControllers++;
             $reflection = new ReflectionClass($class);
             $constructor = $reflection->getConstructor();
-            
+
             // Check constructor dependencies
             if ($constructor) {
                 $parameters = $constructor->getParameters();
                 foreach ($parameters as $param) {
                     $type = $param->getType();
-                    if ($type && !$type->isBuiltin()) {
+                    if ($type && ! $type->isBuiltin()) {
                         $typeName = $type instanceof \ReflectionNamedType ? $type->getName() : '';
                         $this->assertStringNotContainsString(
                             'Controller',
@@ -448,7 +448,7 @@ final class ArchitectureTest extends TestCase
     public function views_do_not_contain_database_queries(): void
     {
         $viewsDir = resource_path('views');
-        if (!is_dir($viewsDir)) {
+        if (! is_dir($viewsDir)) {
             $this->markTestSkipped('No views directory found');
         }
 
@@ -468,7 +468,7 @@ final class ArchitectureTest extends TestCase
 
         foreach ($allFiles as $file) {
             $content = file_get_contents($file);
-            
+
             foreach ($dbPatterns as $pattern) {
                 $this->assertStringNotContainsString(
                     $pattern,
@@ -487,7 +487,7 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             $this->assertStringContainsString(
                 'declare(strict_types=1);',
                 $content,
@@ -544,7 +544,7 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             foreach ($rawSqlPatterns as $pattern) {
                 $this->assertStringNotContainsString(
                     $pattern,
@@ -564,7 +564,7 @@ final class ArchitectureTest extends TestCase
         foreach ($models as $model) {
             $modelName = class_basename($model);
             $factoryClass = "Database\\Factories\\{$modelName}Factory";
-            
+
             $this->assertTrue(
                 class_exists($factoryClass),
                 "Model {$model} must have a corresponding factory {$factoryClass}. Use factories instead of manual seeding."
@@ -582,13 +582,13 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             $this->assertStringNotContainsString(
                 'request(',
                 $content,
                 "Model file {$file} should not use request() helper. Models should not know about HTTP requests."
             );
-            
+
             $this->assertStringNotContainsString(
                 'Request::',
                 $content,
@@ -605,13 +605,13 @@ final class ArchitectureTest extends TestCase
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             $this->assertStringNotContainsString(
                 'die(',
                 $content,
                 "File {$file} should not use die(). It kills the PHP process and prevents Laravel lifecycle completion."
             );
-            
+
             $this->assertStringNotContainsString(
                 'exit(',
                 $content,
@@ -640,13 +640,13 @@ final class ArchitectureTest extends TestCase
 
             foreach ($methods as $method) {
                 // Skip inherited methods, magic methods, and constructor
-                if ($method->getDeclaringClass()->getName() !== $class 
+                if ($method->getDeclaringClass()->getName() !== $class
                     || str_starts_with($method->getName(), '__')) {
                     continue;
                 }
 
                 $methodName = $method->getName();
-                
+
                 // Common non-resourceful anti-patterns
                 $antiPatterns = [
                     'get_all', 'getAll', 'getData', 'get_data',

@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 /**
  * Unit tests for Expense model - Pure business logic only
- * 
+ *
  * Tests framework behavior, database operations, and workflows have been moved to:
  * - tests/Feature/ExpenseWorkflowTest.php
  * - tests/Feature/ExpenseCalculationTest.php
@@ -86,10 +86,10 @@ class ExpenseTest extends TestCase
     {
         // This tests the business logic of decimal rounding
         $testAmount = '12.3456';
-        
+
         // Simulate the rounding that happens in the model
         $roundedAmount = number_format((float) $testAmount, 2, '.', '');
-        
+
         $this->assertEquals('12.35', $roundedAmount);
         $this->assertEquals(2, strlen(explode('.', $roundedAmount)[1]));
     }
@@ -165,12 +165,12 @@ class ExpenseTest extends TestCase
     public function test_expense_amount_precision(): void
     {
         $inputAmount = 123.456789;
-        
+
         // Business logic: round to 2 decimals
         $processedAmount = number_format($inputAmount, 2, '.', '');
 
         $this->assertEquals('123.46', $processedAmount);
-        
+
         // Verify exactly 2 decimal places
         $parts = explode('.', $processedAmount);
         $this->assertCount(2, $parts);

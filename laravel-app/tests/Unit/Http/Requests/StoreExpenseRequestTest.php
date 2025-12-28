@@ -81,7 +81,7 @@ class StoreExpenseRequestTest extends TestCase
         $this->assertContains('string', $categoryRules);
 
         // Verify the 'in' rule contains all categories
-        $inRule = collect($categoryRules)->first(fn($rule) => is_string($rule) && str_starts_with($rule, 'in:'));
+        $inRule = collect($categoryRules)->first(fn ($rule) => is_string($rule) && str_starts_with($rule, 'in:'));
         $this->assertNotNull($inRule);
 
         foreach (Expense::CATEGORIES as $category) {
