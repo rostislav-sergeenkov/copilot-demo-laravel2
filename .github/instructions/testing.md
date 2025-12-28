@@ -5,77 +5,172 @@ applyTo: laravel-app/tests/**
 
 # Testing Guidelines for Expense Tracker
 
-Comprehensive testing strategy and guidelines for the Laravel Expense Tracker application.
+Comprehensive testing strategy using the **Testing Trophy** approach for integration-heavy Laravel applications.
 
-## Testing Strategy
+## Testing Strategy: Testing Trophy
 
-**Three-tier testing pyramid** ensures comprehensive coverage with fast feedback:
+**Testing Trophy approach** optimizes test distribution for integration-heavy web applications:
 
-### 1. Unit Tests (~4s)
-- **Location**: `tests/Unit/`
-- **Coverage**: Models, Form Requests, Helpers
-- **Count**: ~120 tests
-- **Command**: `php artisan test --testsuite=Unit`
-- **Purpose**: Test individual classes in isolation
-- **Pattern**: Use `RefreshDatabase` trait, test one method per test
+```
+                    /\
+                   /  \
+                  / E2E \      Browser-based user flows
+                 /______\
+                /        \
+               / Integration \  LARGEST LAYER ← Sweet spot
+              /______________\
+             /                \
+            /      Unit        \  Pure business logic
+           /____________________\
+          /                      \
+         /   Static Analysis     \  Architecture, PHPStan, Pint
+        /__________________________\
+```
 
-**Key areas**:
-- `ExpenseTest.php` - Model behavior, scopes, relationships (74 tests)
-- `StoreExpenseRequestTest.php`, `UpdateExpenseRequestTest.php` - Validation rules (35 tests)
-- `FormatHelperTest.php` - Utility functions (11 tests)
+**Why Trophy over Pyramid?**
+- ✅ Integration tests provide the most confidence for web applications
+- ✅ Tests real workflows with actual database and HTTP layer
+- ✅ Catches issues that isolated unit tests miss
+- ✅ Better cost/benefit ratio for integration-heavy apps like Laravel
 
-### 2. Feature Tests (~4s)
-- **Location**: `tests/Feature/`
-- **Coverage**: Controllers, Database, Integration
-- **Count**: ~80 tests
-- **Command**: `php artisan test --testsuite=Feature`
-- **Purpose**: Test HTTP requests and database interactions
-- **Pattern**: Use `RefreshDatabase`, test through HTTP layer
+---
 
-**Key areas**:
-- `ExpenseControllerTest.php` - CRUD operations (36 tests)
-- `ValidationTest.php` - Form validation (22 tests)
-- `DatabaseTest.php` - Data integrity (22 tests)
-- `Auth/AuthenticationTest.php` - Login/logout flows
+## Testing Layers
 
-### 3. E2E Tests (Default: ~3 min, Full: ~20 min)
-- **Location**: `tests/e2e/`
-- **Technology**: Playwright (Node.js)
-- **Strategy**: **Happy Path by default**, comprehensive on-demand
-- **Commands**:
-  - `npm run test:e2e` - 16 happy path tests (~3 min) ✅ **Default**
-  - `npm run test:e2e:all` - 80+ comprehensive tests (~20 min)
-  - `npm run test:e2e:ui` - Interactive debugging mode
+### 1. Static Analysis (Base Layer)
 
-**Happy Path tests** (`happy-path.spec.ts`):
-- ✅ Basic CRUD operations (7 tests)
-- ✅ Daily view functionality (3 tests)
-- ✅ Monthly view functionality (3 tests)
-- ✅ Category filtering (2 tests)
-- ✅ Navigation flows (1 test)
+**Tools**: PHPStan, Laravel Pint, Pest Architecture  
+**Commands**:
+  - `composer analyze` - Run PHPStan static analysis (level 8)
+  - `composer lint` - Fix code style with Pint
+  - `composer lint:test` - Check code style without fixing
+  - `composer test:arch` - Run architecture tests  
+**Purpose**: Enforce code standards and architectural rules
 
-**Comprehensive tests** (on-demand):
-- `crud.spec.ts` - Detailed CRUD (25 tests)
-- `daily-view.spec.ts` - Daily view edge cases (12 tests)
-- `monthly-view.spec.ts` - Monthly view edge cases (13 tests)
-- `filtering.spec.ts` - Filter persistence (15 tests)
-- `validation.spec.ts` - Form validation (25 tests)
-- `ui-accessibility.spec.ts` - UI/A11y compliance (30+ tests)
-
-### 4. Architecture Tests
-- **Location**: `tests/Architecture/ArchitectureTest.php`
-- **Purpose**: Enforce architectural rules and code standards
-- **Command**: `php artisan test --testsuite=Architecture`
-- **Runs with**: All PHPUnit tests
-
-**Enforced rules**:
-- Form requests extend FormRequest base class
-- Middleware has handle() method
-- Models have proper fillable/guarded
+**What to enforce**:
+- Naming conventions (Controller, Request, Provider suffixes)
+- Inheritance rules (extend base classes)
 - No debug statements (dd, dump, var_dump)
-- Controllers follow resourceful naming
-- No circular dependencies
-- Strict types enabled in PHP files
+- Strict types enabled
+- Return types on public methods
+
+---
+
+### 2. Unit Tests (Small Layer)
+
+**Location**: `tests/Unit/`  
+**Commands**:
+  - `php artisan test --testsuite=Unit` - Run unit tests
+  - `composer test:unit:coverage` - Run with coverage report (min 70%)  
+**Purpose**: Test pure business logic in isolation  
+**Pattern**: NO database, NO HTTP, NO external services
+
+**What belongs in Unit tests:**
+- ✅ Pure business logic calculations
+- ✅ Validation rule structures
+- ✅ Edge cases in pure functions
+- ✅ Constants and business rules
+- ✅ Helper and utility functions
+- ❌ Database operations
+- ❌ HTTP requests
+- ❌ Factory behavior
+- ❌ Framework features
+
+**Key areas**:
+- Business logic in models (calculations, formatting)
+- Validation rule structures in Form Requests
+- Pure utility functions and helpers
+- Edge cases in algorithms
+
+---
+
+### 3. Integration Tests (LARGEST Layer)
+
+**Location**: `tests/Feature/`  
+**Commands**:
+  - `php artisan test --testsuite=Feature` - Run feature tests
+  - `composer test:feature:coverage` - Run with coverage report (min 60%)  
+**Purpose**: Test complete workflows with real dependencies  
+**Pattern**: Use `RefreshDatabase`, test through HTTP or database
+
+**What belongs in Integration tests:**
+- ✅ CRUD workflows
+- ✅ Database operations (create, update, delete, queries)
+- ✅ HTTP requests and responses
+- ✅ Validation with real requests
+- ✅ Factory data generation
+- ✅ Boundary conditions with database
+- ✅ Aggregations and calculations with DB
+- ✅ Authentication flows
+- ❌ Testing framework behavior (trust Laravel)
+
+**Key areas**:
+- Complete user workflows (CRUD operations)
+- Database queries, scopes, relationships
+- HTTP layer and controller actions
+- Form validation via real requests
+- Authentication and authorization
+- Multi-component interactions
+
+---
+
+### 4. E2E Tests (Small Layer)
+
+**Location**: `tests/e2e/`  
+**Technology**: Playwright (Node.js)  
+**Strategy**: **Happy Path by default**, comprehensive on-demand  
+**Commands**:
+  - `composer test:e2e` - Happy path tests ✅ **Default**
+  - `npm run test:e2e` - Same as composer command
+  - `npm run test:e2e:all` - Comprehensive tests (pre-deploy)
+  - `composer test:e2e:ui` - Interactive debugging mode
+  - `npm run test:e2e:ui` - Same as composer command
+
+**What belongs in E2E tests:**
+- ✅ Critical business flows
+- ✅ Multi-step user journeys
+- ✅ Real browser interactions
+- ✅ JavaScript-heavy features
+- ❌ Validation errors (use Integration tests)
+- ❌ Database edge cases (use Integration tests)
+- ❌ API responses (use Integration tests)
+
+**Happy Path strategy**:
+- Focus on successful user workflows only
+- Cover core business operations
+- Run by default in CI/CD for fast feedback
+- Comprehensive tests run before production deploys
+
+---
+
+## Composer Test Commands
+
+**All-in-one commands** for running complete test suites:
+
+```bash
+cd laravel-app
+
+# Run complete test suite (recommended before commits)
+composer test:all
+
+# Individual test suites
+composer lint              # Fix code style issues
+composer lint:test         # Check code style (no fixes)
+composer analyze           # PHPStan static analysis
+composer test:arch         # Architecture tests
+composer test:unit:coverage    # Unit tests with coverage (min 70%)
+composer test:feature:coverage # Feature tests with coverage (min 60%)
+composer test:e2e          # E2E tests (happy path)
+composer test:e2e:ui       # E2E tests (interactive mode)
+```
+
+**What `composer test:all` runs**:
+1. `composer lint:test` - Code style validation
+2. `composer analyze` - PHPStan static analysis (level 8)
+3. `composer test:arch` - Architecture tests
+4. `composer test:unit:coverage` - Unit tests with 70% minimum coverage
+5. `composer test:feature:coverage` - Feature tests with 60% minimum coverage
+6. `composer test:e2e` - E2E happy path tests
 
 ---
 
@@ -87,17 +182,22 @@ Run fast unit and feature tests frequently:
 
 ```bash
 cd laravel-app
-php artisan test           # Unit + Feature + Architecture (~8s)
+php artisan test           # Unit + Feature + Architecture
 ```
 
 ### Before Commit/PR
 
-Run all backend tests plus E2E happy path:
+Run complete test suite with composer:
 
 ```bash
 cd laravel-app
-php artisan test           # All Laravel tests (~8s)
-npm run test:e2e           # Happy path E2E (~3 min)
+composer test:all          # Complete test suite (recommended)
+
+# Or run manually:
+composer lint:test         # Code style check
+composer analyze           # Static analysis
+php artisan test           # All Laravel tests
+composer test:e2e          # Happy path E2E
 ```
 
 ### Before Production Deploy
@@ -106,8 +206,8 @@ Run comprehensive test suite:
 
 ```bash
 cd laravel-app
-php artisan test           # All Laravel tests
-npm run test:e2e:all       # All E2E tests (~20 min)
+composer test:all          # Complete test suite
+npm run test:e2e:all       # Comprehensive E2E tests (beyond happy path)
 ```
 
 ### Debug Failing Tests
@@ -121,7 +221,8 @@ php artisan test --stop-on-failure         # Stop at first failure
 
 **E2E debugging**:
 ```bash
-npm run test:e2e:ui        # Interactive mode with time travel
+composer test:e2e:ui       # Interactive mode with time travel
+npm run test:e2e:ui        # Same as above
 npm run test:e2e:headed    # See browser in action
 npm run test:e2e:debug     # Step-through debugging
 ```
@@ -132,32 +233,61 @@ npm run test:e2e:debug     # Step-through debugging
 
 ### Unit Tests
 
-**Pattern**: Test one method per test, isolate dependencies
+**Pattern**: Test pure business logic without external dependencies
 
 ```php
-test('can create expense with valid data', function () {
-    $expense = Expense::factory()->create([
-        'description' => 'Test expense',
-        'amount' => 50.00,
-    ]);
-    
-    expect($expense->description)->toBe('Test expense');
-    expect($expense->amount)->toBe('50.00');
+test('percentages sum to 100 percent', function () {
+    $total = 100.00;
+    $breakdown = [
+        'Groceries' => 30.00,
+        'Transport' => 45.00,
+        'Entertainment' => 25.00,
+    ];
+
+    $percentageSum = 0;
+    foreach ($breakdown as $amount) {
+        $percentageSum += ($amount / $total) * 100;
+    }
+
+    expect(round($percentageSum, 2))->toBe(100.0);
 });
 ```
 
 **Best practices**:
 - ✅ One assertion per test (or closely related assertions)
 - ✅ Use descriptive test names: `test_can_create_expense_with_valid_data()`
-- ✅ Mock external dependencies
-- ✅ Test edge cases and error conditions
-- ✅ Use factories for test data
+- ✅ Test edge cases and error conditions in pure functions
+- ✅ NO database operations
+- ✅ NO HTTP requests
+- ✅ NO factory usage
 - ❌ Don't test framework functionality
-- ❌ Don't make database calls in pure unit tests
+- ❌ Don't make database calls in unit tests
 
-### Feature Tests
+**Anti-patterns**:
+```php
+// ❌ DON'T test framework behavior
+test('model has correct fillable', function () {
+    expect((new Expense)->getFillable())->toBe([...]);
+});
 
-**Pattern**: Test complete user workflows through HTTP
+// ❌ DON'T test database in unit tests
+test('can create expense', function () {
+    $expense = Expense::create([...]); // Database call!
+});
+
+// ❌ DON'T test simple properties
+test('can set description', function () {
+    $expense = new Expense();
+    $expense->description = 'test';
+    expect($expense->description)->toBe('test'); // Trivial
+});
+```
+
+---
+
+### Integration Tests (Feature Tests)
+
+**Pattern**: Test complete workflows with real database and HTTP
 
 ```php
 test('can create expense through form submission', function () {
@@ -178,12 +308,37 @@ test('can create expense through form submission', function () {
 
 **Best practices**:
 - ✅ Test complete user workflows
+- ✅ Use `RefreshDatabase` trait
 - ✅ Use `$this->actingAs()` for authenticated requests
 - ✅ Assert HTTP status codes, redirects, and session data
 - ✅ Assert database changes with `assertDatabaseHas()`/`assertDatabaseMissing()`
 - ✅ Test both success and failure scenarios
+- ✅ Use factories for test data
+- ✅ Test with real dependencies (database, HTTP)
 - ❌ Don't test implementation details
-- ❌ Don't duplicate unit test coverage
+- ❌ Don't test framework behavior (trust Laravel)
+- ❌ Don't mock database or Eloquent
+
+**Example - Complete workflow test**:
+```php
+test('filtering by category works with pagination', function () {
+    // Setup real database state
+    Expense::factory()->count(15)->create(['category' => 'Groceries']);
+    Expense::factory()->count(10)->create(['category' => 'Transport']);
+    
+    // Make real HTTP request
+    $response = $this->get('/expenses?category=Groceries');
+    
+    // Assert complete workflow
+    $response->assertOk();
+    $response->assertViewHas('expenses', function ($expenses) {
+        return $expenses->count() === 10
+            && $expenses->every(fn($e) => $e->category === 'Groceries');
+    });
+});
+```
+
+---
 
 ### E2E Tests
 
@@ -225,6 +380,8 @@ test('should create a new expense successfully', async ({ page }) => {
 - ❌ Don't test already covered by Unit/Feature tests
 - ❌ Don't make tests dependent on each other
 
+---
+
 ### Architecture Tests
 
 **Pattern**: Enforce architectural rules
@@ -248,29 +405,116 @@ test('no debug statements in application code')
 
 ---
 
+## Migration Guide: From Pyramid to Trophy
+
+### Identifying Tests to Refactor
+
+**Unit tests that should move to Integration**:
+- Tests using `factory()->create()` - Database calls
+- Tests with `assertDatabaseHas()` - Database assertions
+- Tests of Eloquent relationships - Framework behavior
+- Tests of database scopes - Framework behavior
+- Tests of accessors/mutators - Framework behavior
+
+**Unit tests that should be removed**:
+- Tests of framework configuration (fillable, casts)
+- Tests of simple getters/setters
+- Tests duplicating framework functionality
+
+**Unit tests to keep**:
+- Pure calculation logic
+- Business rule validation
+- Edge case handling in pure functions
+- Helper and utility functions
+
+### Refactoring Process
+
+**Step 1: Audit existing tests**
+```bash
+# Find database calls in unit tests
+grep -r "factory()->create" tests/Unit/
+grep -r "assertDatabaseHas" tests/Unit/
+```
+
+**Step 2: Move database tests to Integration**
+```php
+// Before (Unit test - WRONG)
+test('can create expense', function () {
+    $expense = Expense::factory()->create(['amount' => 50.00]);
+    expect($expense->amount)->toBe('50.00');
+});
+
+// After (Integration test - CORRECT)
+test('can create expense with valid data', function () {
+    $response = $this->post('/expenses', [
+        'description' => 'Test',
+        'amount' => 50.00,
+        'category' => 'Groceries',
+        'date' => today()->toDateString(),
+    ]);
+    
+    $response->assertRedirect('/expenses');
+    $this->assertDatabaseHas('expenses', ['amount' => 50.00]);
+});
+```
+
+**Step 3: Refactor unit tests to pure logic**
+```php
+// Keep only pure business logic
+test('calculates category percentage correctly', function () {
+    $total = 100.00;
+    $amount = 25.00;
+    
+    expect(Expense::calculateCategoryPercentage($amount, $total))
+        ->toBe(25.0);
+});
+```
+
+**Step 4: Expand integration test coverage**
+- Add workflow tests (multi-step operations)
+- Test component interactions
+- Focus on realistic user scenarios
+
+---
+
 ## CI/CD Integration
 
 GitHub Actions workflow runs on PRs to `main`:
 
 ```yaml
-# .github/workflows/laravel.yml
-- php artisan test              # All PHPUnit tests
-- php artisan pint --test       # Code style check
+# .github/workflows/laravel-quality-gates.yml
+- composer test:all             # Complete test suite
+  # This runs:
+  # - composer lint:test          (Code style check)
+  # - composer analyze            (PHPStan level 8)
+  # - composer test:arch          (Architecture tests)
+  # - composer test:unit:coverage (Unit tests, min 70%)
+  # - composer test:feature:coverage (Feature tests, min 60%)
+  # - composer test:e2e           (E2E happy path)
 ```
 
 **PR requirements**:
 - ✅ All tests must pass
-- ✅ Code style must be PSR-12 compliant
+- ✅ Code style must be PSR-12 compliant (Pint)
+- ✅ Static analysis must pass (PHPStan level 8)
+- ✅ Minimum coverage: 70% (unit), 60% (feature)
 - ❌ PRs blocked if tests fail
 
 ---
 
-## Test Coverage Goals
+## Test Coverage Philosophy
 
-- **Unit Tests**: 100% of model methods, validation rules
-- **Feature Tests**: 100% of controller actions, critical workflows
-- **E2E Tests**: 100% of user-facing features (happy path by default)
-- **Architecture Tests**: Key architectural patterns enforced
+**Focus on confidence, not metrics**:
+- Integration tests provide the most confidence for web apps
+- Cover critical user workflows completely
+- Test edge cases in the appropriate layer
+- Avoid testing framework functionality
+
+**Coverage goals by layer**:
+- **Static Analysis**: All code passes architectural rules
+- **Unit Tests**: 100% of pure business logic
+- **Integration Tests**: 100% of user workflows and controller actions
+- **E2E Tests**: 100% of critical user journeys (happy path)
 
 ---
 
@@ -280,3 +524,4 @@ GitHub Actions workflow runs on PRs to `main`:
 - **E2E Testing Guide**: `docs/e2e-testing-guide.md` - Detailed Playwright setup and usage
 - **Unit Tests Summary**: `docs/unit-tests-summary.md` - Coverage details
 - **Feature Tests Summary**: `docs/feature-tests-summary.md` - Feature test coverage
+- **Testing Trophy**: https://kentcdodds.com/blog/the-testing-trophy-and-testing-classifications
