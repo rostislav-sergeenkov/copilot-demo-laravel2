@@ -20,7 +20,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^12.0",
-        "spaze/phpstan-disallowed-calls": "^4.7"
+        "spaze/phpstan-disallowed-calls": "^4.7",
+        "ta-tikoma/phpunit-architecture-test": "^0.8.4"
     },
     "autoload": {
         "psr-4": {
@@ -50,6 +51,7 @@
         "test:all": [
             "@lint:test",
             "@analyze",
+            "@test:arch",
             "@test:unit:coverage",
             "@test:feature:coverage",
             "@test:e2e"
@@ -62,6 +64,9 @@
         ],
         "analyze": [
             "vendor/bin/phpstan analyse --memory-limit=2G --level=8"
+        ],
+        "test:arch": [
+            "@php artisan test --testsuite=Architecture"
         ],
         "test:unit:coverage": [
             "@php artisan test --coverage --parallel --min=70 --testsuite=Unit"

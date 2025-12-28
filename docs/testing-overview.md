@@ -26,7 +26,7 @@ php artisan test
 npm run test:e2e:all
 ```
 
-📖 See [E2E Happy Path Strategy](docs/E2E-Happy-Path-Strategy.md) for details.
+📖 See [E2E Testing Guide](./e2e-testing-guide.md) for details.
 
 ---
 

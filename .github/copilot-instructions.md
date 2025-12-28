@@ -3,6 +3,13 @@
 ## Project Overview
 Laravel 11 expense tracking application with CRUD operations, category filtering, and daily/monthly views. Uses SQLite database and follows Material UI design principles.
 
+## Additional Guidelines
+
+This is the main instruction file. For detailed guidelines on specific topics, refer to:
+
+- **[instructions/testing.md](./instructions/testing.md)** - Testing strategy, test writing guidelines, CI/CD
+- **[instructions/authentication.md](./instructions/authentication.md)** - Authentication patterns, security, route protection
+
 ## Architecture
 
 ### Directory Structure
@@ -42,22 +49,6 @@ php artisan db:seed  # Seeds sample expenses
 php artisan serve    # http://127.0.0.1:8000
 ```
 
-### Testing
-```bash
-cd laravel-app
-php artisan test                    # Run all tests
-php artisan test --filter=Expense   # Run expense tests only
-```
-
-Tests use `RefreshDatabase` trait - each test gets a clean database. Feature tests are in `tests/Feature/ExpenseControllerTest.php`.
-
-### CI/CD
-GitHub Actions workflow (`.github/workflows/laravel.yml`) runs on PRs to `main`:
-- PHP 8.4 with SQLite
-- Runs `php artisan test`
-- Runs Laravel Pint for code style
-- **PRs blocked if tests fail**
-
 ## Conventions
 
 ### Routes
@@ -82,78 +73,41 @@ Custom routes (`/expenses/daily`, `/expenses/monthly`) must be defined **before*
 - Laravel Pint enforces PSR-12 style
 - Use typed properties and return types
 - PHPDoc blocks on public methods
+- Strict types enabled: `declare(strict_types=1);`
 
-## Authentication (Feature 002-user-auth)
+## Quick Reference
 
-**Pattern**: Session-based authentication with custom middleware (no Eloquent User model)
+### Common Commands
 
-### Configuration
-- **Credentials**: Stored in environment variables `USERNAME` and `PASSWORD`
-- **Session flag**: `session('authenticated')` boolean indicates auth state
-- **Middleware**: `auth.custom` alias for `App\Http\Middleware\Authenticate`
-- **Rate limiting**: 5 attempts per username OR 10 per IP in 15 minutes
+```bash
+# Development
+cd laravel-app
+php artisan serve              # Start dev server
+php artisan test              # Run all tests (~8s)
+php artisan pint              # Fix code style
 
-### Key Components
-- **AuthController** (`app/Http/Controllers/AuthController.php`):
-  - `showLogin()` - Display login form
-  - `login()` - Validate credentials using `hash_equals()`, check rate limits
-  - `logout()` - Clear session with `$request->session()->flush()`
+# E2E Testing
+npm run test:e2e              # Happy path (~3 min)
+npm run test:e2e:all          # All tests (~20 min)
+npm run test:e2e:ui           # Interactive mode
 
-- **Authenticate Middleware** (`app/Http/Middleware/Authenticate.php`):
-  - Checks `session('authenticated') === true` on every protected request
-  - Redirects to `/login` if not authenticated
-
-- **Login View** (`resources/views/auth/login.blade.php`):
-  - Material UI styled form
-  - Username and password fields
-  - CSRF protection via `@csrf`
-
-### Security Patterns
-- **Timing-safe comparison**: Always use `hash_equals()` for password validation
-  ```php
-  $valid = hash_equals(env('USERNAME', ''), $username) 
-        && hash_equals(env('PASSWORD'), $password);
-  ```
-
-- **Rate limiting** with Laravel's RateLimiter:
-  ```php
-  $userKey = "login-user:$username";
-  $ipKey = "login-ip:$ip";
-  
-  if (RateLimiter::tooManyAttempts($userKey, 5)) {
-      // Return error
-  }
-  
-  RateLimiter::hit($userKey, 15 * 60); // 15 minutes
-  RateLimiter::clear($userKey); // On successful login
-  ```
-
-- **Custom Blade directive**: `@auth` checks `session('authenticated')`
-  ```php
-  // In AppServiceProvider
-  Blade::if('auth', fn() => session('authenticated') === true);
-  ```
-
-### Route Protection
-```php
-// Auth routes (before middleware group)
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Protected routes
-Route::middleware(['auth.custom'])->group(function () {
-    Route::resource('expenses', ExpenseController::class);
-    // ... other protected routes
-});
+# Database
+php artisan migrate:fresh     # Reset database
+php artisan db:seed           # Seed sample data
 ```
 
-### Testing
-- **Environment**: Use `.env.testing` with `USERNAME=testuser` / `PASSWORD=testpass`
-- **Feature tests**: Add `session(['authenticated' => true])` to setUp() for protected route tests
-- **Auth tests**: Test login/logout flows, rate limiting, unauthenticated access blocking
+### Key Files
 
-### References
-- Specification: `specs/002-user-auth/spec.md`
-- Implementation plan: `specs/002-user-auth/plan.md`
-- Developer guide: `specs/002-user-auth/quickstart.md`
+- **Model**: `app/Models/Expense.php`
+- **Controller**: `app/Http/Controllers/ExpenseController.php`
+- **Form Requests**: `app/Http/Requests/StoreExpenseRequest.php`, `UpdateExpenseRequest.php`
+- **Routes**: `routes/web.php`
+- **Views**: `resources/views/expenses/`
+
+### Documentation
+
+- **Testing**: [instructions/testing.md](./instructions/testing.md) - Complete testing guidelines
+- **Authentication**: [instructions/authentication.md](./instructions/authentication.md) - Auth patterns and security
+- **Architecture**: `docs/project-architecture-blueprint.md` - Full architecture overview
+- **Code Quality**: `docs/code-quality.md` - Linting and static analysis
+
