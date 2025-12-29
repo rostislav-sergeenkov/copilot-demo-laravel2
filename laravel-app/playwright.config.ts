@@ -41,11 +41,15 @@ function loadEnv() {
 
 const laravelEnv = loadEnv();
 
+// Get credentials from environment variables (CI/CD) or .env file (local)
+const AUTH_USERNAME = process.env.AUTH_USERNAME || laravelEnv.AUTH_USERNAME;
+const TEST_PASSWORD = process.env.TEST_PASSWORD || laravelEnv.TEST_PASSWORD;
+
 // Validate required environment variables
-if (!laravelEnv.AUTH_USERNAME || !laravelEnv.TEST_PASSWORD) {
+if (!AUTH_USERNAME || !TEST_PASSWORD) {
   throw new Error(
-    'AUTH_USERNAME and TEST_PASSWORD must be set in .env file. ' +
-    `Missing: ${!laravelEnv.AUTH_USERNAME ? 'AUTH_USERNAME ' : ''}${!laravelEnv.TEST_PASSWORD ? 'TEST_PASSWORD' : ''}`
+    'AUTH_USERNAME and TEST_PASSWORD must be set via environment variables or .env file. ' +
+    `Missing: ${!AUTH_USERNAME ? 'AUTH_USERNAME ' : ''}${!TEST_PASSWORD ? 'TEST_PASSWORD' : ''}`
   );
 }
 
@@ -107,8 +111,8 @@ export default defineConfig({
   // Make credentials available via process.env
   ...(() => {
     // Set in Node.js process.env so tests can access them
-    process.env.AUTH_USERNAME = laravelEnv.AUTH_USERNAME;
-    process.env.TEST_PASSWORD = laravelEnv.TEST_PASSWORD;
+    process.env.AUTH_USERNAME = AUTH_USERNAME;
+    process.env.TEST_PASSWORD = TEST_PASSWORD;
     return {};
   })(),
 
