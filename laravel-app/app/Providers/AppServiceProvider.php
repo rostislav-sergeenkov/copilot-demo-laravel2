@@ -23,11 +23,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Validate required authentication environment variables
-        if (empty(config('auth.custom.username')) || empty(config('auth.custom.password_hash'))) {
-            throw new \RuntimeException(
-                'AUTH_USERNAME and PASSWORD_HASH environment variables are required. ' .
-                    'Configure them in .env file.'
-            );
+        // Skip validation during console commands (composer install, artisan commands, etc.)
+        if (!$this->app->runningInConsole()) {
+            if (empty(config('auth.custom.username')) || empty(config('auth.custom.password_hash'))) {
+                throw new \RuntimeException(
+                    'AUTH_USERNAME and PASSWORD_HASH environment variables are required. ' .
+                        'Configure them in .env file.'
+                );
+            }
         }
 
         // Register custom @auth directive
