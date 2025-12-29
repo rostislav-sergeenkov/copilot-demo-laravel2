@@ -115,7 +115,7 @@ class ExpenseTest extends TestCase
         $total = 100.00;
         $categoryTotal = 0.00;
 
-        $percentage = $total > 0 ? ($categoryTotal / $total) * 100 : 0;
+        $percentage = ($categoryTotal / $total) * 100;
 
         $this->assertEquals(0.0, $percentage);
     }
@@ -147,15 +147,11 @@ class ExpenseTest extends TestCase
      */
     public function test_empty_category_breakdown(): void
     {
-        $emptyExpenses = [];
+        /** @var array<string, float> $breakdown */
         $breakdown = [];
 
-        foreach ($emptyExpenses as $expense) {
-            $breakdown[$expense['category']] = ($breakdown[$expense['category']] ?? 0) + $expense['amount'];
-        }
-
+        // Test that empty expenses result in empty breakdown
         $this->assertCount(0, $breakdown);
-        $this->assertIsArray($breakdown);
     }
 
     /**

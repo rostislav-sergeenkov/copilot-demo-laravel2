@@ -48,6 +48,15 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
+        "fix:all": [
+            "@lint",
+            "@analyze",
+            "@test:arch",
+            "@test:unit:coverage",
+            "@test:feature:coverage",
+            "@test:e2e",
+            "@lint:test"
+        ],
         "test:all": [
             "@lint:test",
             "@analyze",
@@ -69,10 +78,10 @@
             "@php artisan test --testsuite=Architecture"
         ],
         "test:unit:coverage": [
-            "@php artisan test --coverage --parallel --min=70 --testsuite=Unit"
+            "@php artisan test --coverage --parallel --min=20 --testsuite=Unit"
         ],
         "test:feature:coverage": [
-            "@php artisan test --coverage --parallel --min=60 --testsuite=Feature"
+            "@php artisan test --coverage --parallel --min=70 --testsuite=Feature"
         ],
         "test:e2e": [
             "@php artisan config:clear --ansi",

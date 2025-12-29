@@ -148,6 +148,7 @@ class ExpenseBoundaryTest extends TestCase
 
         // Should be rounded/truncated to 2 decimal places
         $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
         $this->assertEquals('123.46', $freshExpense->amount);
     }
 
@@ -157,16 +158,24 @@ class ExpenseBoundaryTest extends TestCase
     public function test_amount_stores_two_decimal_places(): void
     {
         $expense1 = Expense::factory()->create(['amount' => 1.00]);
-        $this->assertEquals('1.00', $expense1->fresh()->amount);
+        $fresh1 = $expense1->fresh();
+        $this->assertNotNull($fresh1);
+        $this->assertEquals('1.00', $fresh1->amount);
 
         $expense2 = Expense::factory()->create(['amount' => 1.50]);
-        $this->assertEquals('1.50', $expense2->fresh()->amount);
+        $fresh2 = $expense2->fresh();
+        $this->assertNotNull($fresh2);
+        $this->assertEquals('1.50', $fresh2->amount);
 
         $expense3 = Expense::factory()->create(['amount' => 1.23]);
-        $this->assertEquals('1.23', $expense3->fresh()->amount);
+        $fresh3 = $expense3->fresh();
+        $this->assertNotNull($fresh3);
+        $this->assertEquals('1.23', $fresh3->amount);
 
         $expense4 = Expense::factory()->create(['amount' => 999.99]);
-        $this->assertEquals('999.99', $expense4->fresh()->amount);
+        $fresh4 = $expense4->fresh();
+        $this->assertNotNull($fresh4);
+        $this->assertEquals('999.99', $fresh4->amount);
     }
 
     /**
@@ -220,6 +229,7 @@ class ExpenseBoundaryTest extends TestCase
         $expense->update(['amount' => 678.90]);
 
         $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
         $this->assertEquals('678.90', $freshExpense->amount);
     }
 }

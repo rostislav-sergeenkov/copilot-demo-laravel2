@@ -170,7 +170,6 @@ class ExpenseWorkflowTest extends TestCase
         ]);
 
         $this->assertEquals('123.45', $expense->amount);
-        $this->assertIsString($expense->amount); // decimal:2 cast returns string
     }
 
     /**
@@ -197,6 +196,7 @@ class ExpenseWorkflowTest extends TestCase
 
         $expenses = Expense::orderBy('date', 'desc')->get();
 
+        $this->assertCount(3, $expenses);
         $this->assertEquals('Third', $expenses[0]->description);
         $this->assertEquals('Second', $expenses[1]->description);
         $this->assertEquals('First', $expenses[2]->description);
@@ -213,6 +213,7 @@ class ExpenseWorkflowTest extends TestCase
 
         $expenses = Expense::orderBy('date', 'asc')->get();
 
+        $this->assertCount(3, $expenses);
         $this->assertEquals('First', $expenses[0]->description);
         $this->assertEquals('Second', $expenses[1]->description);
         $this->assertEquals('Third', $expenses[2]->description);
@@ -229,6 +230,7 @@ class ExpenseWorkflowTest extends TestCase
 
         $expenses = Expense::orderBy('amount', 'asc')->get();
 
+        $this->assertCount(3, $expenses);
         $this->assertEquals('Low', $expenses[0]->description);
         $this->assertEquals('Medium', $expenses[1]->description);
         $this->assertEquals('High', $expenses[2]->description);
@@ -262,11 +264,15 @@ class ExpenseWorkflowTest extends TestCase
         $expense1 = Expense::find($expense->id);
         $expense2 = Expense::find($expense->id);
 
+        $this->assertNotNull($expense1);
+        $this->assertNotNull($expense2);
+
         $expense1->update(['amount' => 200.00]);
         $expense2->update(['amount' => 300.00]);
 
         // Last update should win
         $freshExpense = $expense->fresh();
+        $this->assertNotNull($freshExpense);
         $this->assertEquals('300.00', $freshExpense->amount);
     }
 
