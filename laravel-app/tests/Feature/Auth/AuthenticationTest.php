@@ -13,11 +13,28 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Get test username from environment.
+     */
+    protected function getTestUsername(): string
+    {
+        return config('auth.custom.username', 'testuser');
+    }
+
+    /**
+     * Get test password from environment.
+     */
+    protected function getTestPassword(): string
+    {
+        return env('TEST_PASSWORD', 'testpass');
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
         // Clear rate limiters before each test
-        RateLimiter::clear('login-user:testuser');
+        $username = $this->getTestUsername();
+        RateLimiter::clear("login-user:{$username}");
         RateLimiter::clear('login-ip:127.0.0.1');
     }
 
@@ -61,8 +78,8 @@ class AuthenticationTest extends TestCase
     public function test_login_with_valid_credentials(): void
     {
         $response = $this->post('/login', [
-            'username' => 'testuser',
-            'password' => 'testpass',
+            'username' => $this->getTestUsername(),
+            'password' => $this->getTestPassword(),
         ]);
 
         $response->assertRedirect('/expenses');
@@ -76,7 +93,7 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->post('/login', [
             'username' => 'wronguser',
-            'password' => 'testpass',
+            'password' => $this->getTestPassword(),
         ]);
 
         $response->assertRedirect();
@@ -90,7 +107,7 @@ class AuthenticationTest extends TestCase
     public function test_login_with_invalid_password(): void
     {
         $response = $this->post('/login', [
-            'username' => 'testuser',
+            'username' => $this->getTestUsername(),
             'password' => 'wrongpass',
         ]);
 
@@ -118,7 +135,7 @@ class AuthenticationTest extends TestCase
     public function test_login_with_missing_password(): void
     {
         $response = $this->post('/login', [
-            'username' => 'testuser',
+            'username' => $this->getTestUsername(),
             'password' => '',
         ]);
 
@@ -134,7 +151,7 @@ class AuthenticationTest extends TestCase
      */
     public function test_rate_limiting_per_username(): void
     {
-        $username = 'testuser';
+        $username = $this->getTestUsername();
 
         // Make 5 failed attempts (should work)
         for ($i = 0; $i < 5; $i++) {
@@ -190,8 +207,8 @@ class AuthenticationTest extends TestCase
      */
     public function test_successful_login_clears_rate_limiter(): void
     {
-        $username = 'testuser';
-        $password = 'testpass';
+        $username = $this->getTestUsername();
+        $password = $this->getTestPassword();
 
         // Make 4 failed attempts
         for ($i = 0; $i < 4; $i++) {
@@ -375,11 +392,11 @@ class AuthenticationTest extends TestCase
 
         $response1 = $this->post('/login', [
             'username' => 'wronguser',
-            'password' => 'testpass',
+            'password' => $this->getTestPassword(),
         ]);
 
         $response2 = $this->post('/login', [
-            'username' => 'testuser',
+            'username' => $this->getTestUsername(),
             'password' => 'wrongpass',
         ]);
 
