@@ -37,18 +37,6 @@ parameters:
 			path: database/seeders/ExpenseSeeder.php
 
 		-
-			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
-			identifier: argument.type
-			count: 10
-			path: tests/Architecture/ArchitectureTest.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 3
-			path: tests/Architecture/ArchitectureTest.php
-
-		-
 			message: '#^Result of \|\| is always true\.$#'
 			identifier: booleanOr.alwaysTrue
 			count: 1
@@ -65,12 +53,6 @@ parameters:
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Feature/DatabaseTest.php
-
-		-
-			message: '#^Cannot access property \$description on App\\Models\\Expense\|null\.$#'
-			identifier: property.nonObject
-			count: 9
-			path: tests/Feature/ExpenseWorkflowTest.php
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'

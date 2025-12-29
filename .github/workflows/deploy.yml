@@ -1,10 +1,7 @@
 name: Deploy to Fly.io
 
 on:
-  workflow_run:
-    workflows: ["Laravel Quality Gates"]
-    types:
-      - completed
+  push:
     branches:
       - main
 
@@ -12,7 +9,6 @@ jobs:
   deploy:
     name: Deploy to Fly.io
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
     
     steps:
       - name: Checkout code

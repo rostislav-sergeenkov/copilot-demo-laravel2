@@ -50,11 +50,11 @@
         ],
         "fix:all": [
             "@lint",
-            "@analyze",
             "@test:arch",
             "@test:unit:coverage",
             "@test:feature:coverage",
             "@test:e2e",
+            "@analyze",
             "@lint:test"
         ],
         "test:all": [
