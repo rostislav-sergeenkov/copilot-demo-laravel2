@@ -16,6 +16,13 @@ class DatabaseTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Authenticate for protected routes
+        session(['authenticated' => true]);
+    }
+
     // ==========================================
     // Schema Tests
     // ==========================================
@@ -83,6 +90,7 @@ class DatabaseTest extends TestCase
         $expense = Expense::factory()->create(['amount' => 123.456]);
 
         $storedExpense = Expense::find($expense->id);
+        $this->assertNotNull($storedExpense);
 
         // Should be rounded to 2 decimal places
         $this->assertEquals('123.46', $storedExpense->amount);
@@ -126,9 +134,11 @@ class DatabaseTest extends TestCase
     {
         $this->artisan('db:seed', ['--class' => 'ExpenseSeeder']);
 
-        $months = Expense::selectRaw('DISTINCT strftime("%Y-%m", date) as month')
-            ->pluck('month')
-            ->count();
+        /** @var \Illuminate\Support\Collection<int, string> $monthsCollection */
+        $monthsCollection = Expense::selectRaw('DISTINCT strftime("%Y-%m", date) as month')
+            ->get()
+            ->pluck('month');
+        $months = $monthsCollection->count();
 
         $this->assertGreaterThan(1, $months);
     }
@@ -322,6 +332,7 @@ class DatabaseTest extends TestCase
         $expense->update(['amount' => 75.00]);
 
         $updatedExpense = Expense::find($expense->id);
+        $this->assertNotNull($updatedExpense);
 
         $this->assertEquals('75.00', $updatedExpense->amount);
     }

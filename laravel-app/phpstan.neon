@@ -1,5 +1,6 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
     - phpstan-baseline.neon
 
 parameters:
@@ -23,3 +24,32 @@ parameters:
     noUnnecessaryCollectionCall: true
     checkModelProperties: true
     checkOctaneCompatibility: false
+
+    # Disallowed function calls
+    disallowedFunctionCalls:
+        -
+            function: 'env()'
+            message: 'Use config() instead. The env() function should only be called in config files.'
+            allowIn:
+                - config/*
+                - bootstrap/*
+        -
+            function: 'dd()'
+            message: 'Debug function dd() should not be committed to the codebase.'
+            allowIn:
+                - tests/*
+        -
+            function: 'dump()'
+            message: 'Debug function dump() should not be committed to the codebase.'
+            allowIn:
+                - tests/*
+        -
+            function: 'var_dump()'
+            message: 'Use logger or proper debugging tools instead of var_dump().'
+            allowIn:
+                - tests/*
+        -
+            function: 'print_r()'
+            message: 'Use logger or proper debugging tools instead of print_r().'
+            allowIn:
+                - tests/*

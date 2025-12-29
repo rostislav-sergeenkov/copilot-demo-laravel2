@@ -3,6 +3,13 @@
 ## Project Overview
 Laravel 11 expense tracking application with CRUD operations, category filtering, and daily/monthly views. Uses SQLite database and follows Material UI design principles.
 
+## Additional Guidelines
+
+This is the main instruction file. For detailed guidelines on specific topics, refer to:
+
+- **[instructions/testing.md](./instructions/testing.md)** - Testing strategy, test writing guidelines, CI/CD
+- **[instructions/authentication.md](./instructions/authentication.md)** - Authentication patterns, security, route protection
+
 ## Architecture
 
 ### Directory Structure
@@ -42,22 +49,6 @@ php artisan db:seed  # Seeds sample expenses
 php artisan serve    # http://127.0.0.1:8000
 ```
 
-### Testing
-```bash
-cd laravel-app
-php artisan test                    # Run all tests
-php artisan test --filter=Expense   # Run expense tests only
-```
-
-Tests use `RefreshDatabase` trait - each test gets a clean database. Feature tests are in `tests/Feature/ExpenseControllerTest.php`.
-
-### CI/CD
-GitHub Actions workflow (`.github/workflows/laravel.yml`) runs on PRs to `main`:
-- PHP 8.4 with SQLite
-- Runs `php artisan test`
-- Runs Laravel Pint for code style
-- **PRs blocked if tests fail**
-
 ## Conventions
 
 ### Routes
@@ -82,3 +73,41 @@ Custom routes (`/expenses/daily`, `/expenses/monthly`) must be defined **before*
 - Laravel Pint enforces PSR-12 style
 - Use typed properties and return types
 - PHPDoc blocks on public methods
+- Strict types enabled: `declare(strict_types=1);`
+
+## Quick Reference
+
+### Common Commands
+
+```bash
+# Development
+cd laravel-app
+php artisan serve              # Start dev server
+php artisan test              # Run all tests (~8s)
+php artisan pint              # Fix code style
+
+# E2E Testing
+npm run test:e2e              # Happy path (~3 min)
+npm run test:e2e:all          # All tests (~20 min)
+npm run test:e2e:ui           # Interactive mode
+
+# Database
+php artisan migrate:fresh     # Reset database
+php artisan db:seed           # Seed sample data
+```
+
+### Key Files
+
+- **Model**: `app/Models/Expense.php`
+- **Controller**: `app/Http/Controllers/ExpenseController.php`
+- **Form Requests**: `app/Http/Requests/StoreExpenseRequest.php`, `UpdateExpenseRequest.php`
+- **Routes**: `routes/web.php`
+- **Views**: `resources/views/expenses/`
+
+### Documentation
+
+- **Testing**: [instructions/testing.md](./instructions/testing.md) - Complete testing guidelines
+- **Authentication**: [instructions/authentication.md](./instructions/authentication.md) - Auth patterns and security
+- **Architecture**: `docs/project-architecture-blueprint.md` - Full architecture overview
+- **Code Quality**: `docs/code-quality.md` - Linting and static analysis
+

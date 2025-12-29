@@ -32,3 +32,6 @@ Thumbs.db
 node_modules/
 /blob-report/
 /playwright/.auth/
+
+# Mutation testing build files
+/build/
