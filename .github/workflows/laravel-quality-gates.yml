@@ -1,8 +1,6 @@
 name: Laravel Quality Gates
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
