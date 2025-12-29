@@ -108,7 +108,7 @@ jobs:
         run: chmod -R +x vendor/bin
 
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+        run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress --level=7
 
   architecture-tests:
     needs: setup
