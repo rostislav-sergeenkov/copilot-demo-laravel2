@@ -16,6 +16,11 @@ return new class extends Migration {
             return;
         }
 
+        // Only create if table doesn't exist (prevent conflicts with Laravel's auto-migration)
+        if (Schema::hasTable('sessions')) {
+            return;
+        }
+
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
