@@ -317,17 +317,42 @@ Based on [copilot-acceptance-checklist.md](../.github/copilot-acceptance-checkli
 
 ### GitHub Actions Workflows
 
-#### PHPUnit Tests (Laravel.yml)
+#### Quality Gates (laravel-quality-gates.yml)
 ```yaml
-- name: Run Unit Tests
-  run: php artisan test --testsuite=Unit
-
-- name: Run Feature Tests
-  run: php artisan test --testsuite=Feature
+- name: Run All Tests
+  run: composer test:all
+  # Includes: lint, analyze, architecture, unit, feature tests
 ```
 
 **Triggers**: Push to `main`, Pull Requests to `main`  
-**Status**: ✅ Configured in [.github/workflows/laravel.yml](../.github/workflows/laravel.yml)
+**Status**: ✅ Configured in [.github/workflows/laravel-quality-gates.yml](../../.github/workflows/laravel-quality-gates.yml)
+
+#### Deployment with Health Checks (deploy.yml)
+```yaml
+- name: Deploy to Fly.io
+  run: flyctl deploy --remote-only
+
+- name: Health Check - Application Info
+  run: flyctl ssh console -C "php artisan about"
+
+- name: Health Check - Database Connection
+  run: flyctl ssh console -C "php artisan tinker --execute='...'"
+
+- name: Health Check - HTTP Endpoint
+  run: curl -s -o /dev/null -w "%{http_code}" "https://app.fly.dev/login"
+```
+
+**Triggers**: Push to `main`  
+**Health Checks**: Automated post-deployment verification  
+**Status**: ✅ Configured in [.github/workflows/deploy.yml](../../.github/workflows/deploy.yml)
+
+**Health Check Steps:**
+1. ⏳ Wait 30 seconds for app to start
+2. 📊 Verify application environment and config
+3. 💾 Test database connection and queries
+4. 🛣️  Validate routes are registered
+5. 🌐 Confirm HTTP endpoint returns 200
+6. ✅ Create deployment tag only if all checks pass
 
 #### E2E Tests (e2e-tests.yml)
 ```yaml
@@ -336,7 +361,7 @@ Based on [copilot-acceptance-checklist.md](../.github/copilot-acceptance-checkli
 ```
 
 **Triggers**: Push to `main`, Pull Requests to `main`  
-**Status**: ✅ Configured in [.github/workflows/e2e-tests.yml](../.github/workflows/e2e-tests.yml)
+**Status**: ✅ Configured in [.github/workflows/e2e-tests.yml](../../.github/workflows/e2e-tests.yml)
 
 ### Branch Protection
 - ✅ All tests must pass before merge

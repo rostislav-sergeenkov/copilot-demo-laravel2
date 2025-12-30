@@ -196,6 +196,64 @@ https://your-app-name.fly.dev
 
 ### Post-Deployment Management
 
+#### Health Checks
+After deployment, verify your app is running correctly:
+
+```bash
+# Quick health check
+fly ssh console -C "php artisan about"
+
+# Database connection check
+fly ssh console -C "php artisan tinker --execute='echo DB::connection()->getDatabaseName();'"
+
+# Test a query
+fly ssh console -C "php artisan tinker --execute='echo App\Models\Expense::count();'"
+
+# HTTP endpoint check
+curl -I https://your-app-name.fly.dev/login
+```
+
+**Comprehensive Health Check Script:**
+
+Create `scripts/health-check.sh` in `laravel-app/`:
+
+```bash
+#!/bin/bash
+# Health check script for deployed Laravel app
+
+echo "🔍 Laravel Health Check"
+echo "================================"
+
+echo -e "\n📊 Application Info:"
+php artisan about --only=environment,cache,queue
+
+echo -e "\n💾 Database Connection:"
+php artisan tinker --execute='
+    echo "Database: " . DB::connection()->getDatabaseName() . "\n";
+    echo "Expenses: " . App\Models\Expense::count() . "\n";
+'
+
+echo -e "\n🛣️  Routes:"
+php artisan route:list --columns=Method,URI,Name | grep -E '(login|expenses)' | head -10
+
+echo -e "\n✅ Health check complete!"
+```
+
+Run it remotely:
+```bash
+fly ssh console -C "bash /var/www/html/scripts/health-check.sh"
+```
+
+**Automated CI/CD Health Checks:**
+
+The GitHub Actions deployment workflow automatically runs health checks after each deployment:
+- ✅ Application info and environment validation
+- ✅ Database connection and query test
+- ✅ Route validation
+- ✅ HTTP endpoint verification
+
+See [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) for implementation details.
+
 #### Viewing Logs
 ```bash
 # Stream live logs

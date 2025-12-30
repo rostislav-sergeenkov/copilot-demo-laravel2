@@ -701,7 +701,57 @@ flyctl volumes create data --region fra --size 1 -a your-app-name
 2. **Create Volume**: `flyctl volumes create data`
 3. **Set Secrets**: `flyctl secrets set KEY=value`
 4. **Deploy App**: `flyctl deploy`
-5. **Monitor**: `flyctl logs`
+5. **Automated Health Checks**: CI/CD validates deployment
+6. **Monitor**: `flyctl logs`
+
+### CI/CD Pipeline
+
+**GitHub Actions Workflow** (`.github/workflows/deploy.yml`):
+
+```yaml
+Trigger: Push to main branch
+
+Deployment Steps:
+  1. Checkout code and generate release notes
+  2. Deploy to Fly.io
+  3. Wait for app to start (30 seconds)
+  4. Health Check - Application Info
+  5. Health Check - Database Connection
+  6. Health Check - Route Validation
+  7. Health Check - HTTP Endpoint
+  8. Create deployment tag (if all checks pass)
+```
+
+**Automated Health Checks:**
+- ✅ **Application Info**: Validates environment, cache, queue configuration
+- ✅ **Database Connection**: Tests SQLite connection and queries
+- ✅ **Route Validation**: Verifies critical routes are registered
+- ✅ **HTTP Endpoint**: Confirms login page returns HTTP 200
+
+**Benefits:**
+- Immediate feedback on deployment success
+- Catches configuration errors before users encounter them
+- Prevents bad deployments from being tagged
+- Provides audit trail in CI/CD logs
+
+### Manual Health Checks
+
+**Quick Check:**
+```bash
+fly ssh console -C "php artisan about"
+```
+
+**Comprehensive Check:**
+```bash
+fly ssh console -C "bash /var/www/html/scripts/health-check.sh"
+```
+
+**Health Check Script** (`scripts/health-check.sh`):
+- Application environment and config
+- Database connection and record count
+- Route listing
+- Storage permissions
+- Database file status
 
 ---
 
@@ -723,8 +773,10 @@ flyctl volumes create data --region fra --size 1 -a your-app-name
 | Seeder | `database/seeders/ExpenseSeeder.php` |
 | Expense Feature Tests | `tests/Feature/ExpenseControllerTest.php` |
 | Auth Feature Tests | `tests/Feature/Auth/AuthenticationTest.php` |
-| CI/CD | `.github/workflows/laravel-quality-gates.yml` |
-| Deployment | `Dockerfile`, `fly.toml` |
+| CI/CD Quality Gates | `.github/workflows/laravel-quality-gates.yml` |
+| CI/CD Deployment | `.github/workflows/deploy.yml` |
+| Deployment Config | `Dockerfile`, `fly.toml` |
+| Health Check Script | `scripts/health-check.sh` |
 | CSS | `public/css/app.css` |
 
 ---
