@@ -4,10 +4,10 @@
 
 # Check if we're using SQLite and the database doesn't exist
 if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
-    DB_PATH="/var/www/html/database/database.sqlite"
+    DB_PATH="/var/www/html/storage/database/database.sqlite"
     
     # Create database directory if it doesn't exist
-    mkdir -p /var/www/html/database
+    mkdir -p /var/www/html/storage/database
     
     # Create database file if it doesn't exist
     if [ ! -f "$DB_PATH" ]; then
