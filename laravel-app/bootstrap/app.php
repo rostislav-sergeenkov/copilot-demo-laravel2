@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias([
+    // Trust proxies for Fly.io HTTPS detection
+    $middleware->trustProxies(at: '*');
+
+    $middleware->alias([
             'auth.custom' => \App\Http\Middleware\Authenticate::class,
         ]);
 
