@@ -124,6 +124,15 @@ architecture-testing.md           - Architectural rules
 code-quality.md                   - Quality standards
 ```
 
+### Deployment
+```
+See ../README.md (root) for:
+  - Local installation guide
+  - Fly.io deployment guide
+  - Environment configuration
+  - Troubleshooting
+```
+
 **Total**: 9 documentation files
 
 ---
@@ -161,6 +170,6 @@ When making changes to the application:
 
 ---
 
-**Last Updated**: December 28, 2025  
+**Last Updated**: December 30, 2025  
 **Project**: Laravel Expense Tracker  
-**Documentation Version**: 2.0
+**Documentation Version**: 2.1

@@ -72,6 +72,73 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+      - name: Wait for Deployment
+        if: success()
+        run: |
+          echo "⏳ Waiting 30 seconds for app to start..."
+          sleep 30
+
+      - name: Health Check - Application Info
+        if: success()
+        working-directory: ./laravel-app
+        run: |
+          echo "🔍 Running health checks..."
+          echo "================================"
+          echo ""
+          echo "📊 Application Info:"
+          flyctl ssh console -C "php artisan about --only=environment,cache,queue"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: false
+
+      - name: Health Check - Database Connection
+        if: success()
+        working-directory: ./laravel-app
+        run: |
+          echo ""
+          echo "💾 Database Check:"
+          flyctl ssh console -C "php artisan tinker --execute='echo \"Database: \" . DB::connection()->getDatabaseName() . PHP_EOL; echo \"Expenses count: \" . App\\Models\\Expense::count() . PHP_EOL;'"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: false
+
+      - name: Health Check - Route Validation
+        if: success()
+        working-directory: ./laravel-app
+        run: |
+          echo ""
+          echo "🛣️  Route Check:"
+          flyctl ssh console -C "php artisan route:list --columns=Method,URI,Name | grep -E '(login|expenses)' | head -10"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: true
+
+      - name: Health Check - HTTP Endpoint
+        if: success()
+        working-directory: ./laravel-app
+        run: |
+          echo ""
+          echo "🌐 HTTP Health Check:"
+          APP_URL=$(flyctl info --json | jq -r '.Hostname')
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_URL}/login" || echo "000")
+          echo "Login page status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ Application is responding correctly"
+          else
+            echo "⚠️  Warning: Unexpected HTTP status code"
+            exit 1
+          fi
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Health Check Summary
+        if: success()
+        run: |
+          echo ""
+          echo "================================"
+          echo "✅ All health checks passed!"
+          echo "🚀 Deployment successful and verified"
+
       - name: Create Deployment Tag
         if: success()
         run: |

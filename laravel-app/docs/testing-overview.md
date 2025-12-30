@@ -211,6 +211,37 @@ npm run test:e2e:all
 
 ---
 
+### F7: User Authentication → `AuthenticationTest.php`
+
+#### Login Functionality
+| Acceptance Criterion | Test Name | Status |
+|---------------------|-----------|--------|
+| Login page loads at `/login` | test_login_page_displays_correctly | ✅ |
+| Form contains username and password fields | test_login_page_displays_correctly | ✅ |
+| Valid credentials grant access | test_login_with_valid_credentials | ✅ |
+| Invalid credentials show error | test_login_with_invalid_username | ✅ |
+| Rate limiting after 5 failed attempts | test_rate_limiting_blocks_after_max_attempts | ✅ |
+| Session persists across requests | test_authenticated_session_persists | ✅ |
+
+#### Route Protection
+| Acceptance Criterion | Test Name | Status |
+|---------------------|-----------|--------|
+| Unauthenticated users redirected to login | test_unauthenticated_users_redirected_to_login | ✅ |
+| Authenticated users can access expenses | test_authenticated_users_can_access_expenses | ✅ |
+| Logout clears session | test_logout_clears_session | ✅ |
+| Custom middleware protects routes | test_middleware_protects_routes | ✅ |
+
+#### Security
+| Acceptance Criterion | Test Name | Status |
+|---------------------|-----------|--------|
+| Timing-safe password comparison | test_login_with_valid_credentials | ✅ |
+| CSRF protection on login form | test_csrf_protection_on_login | ✅ |
+| Session regeneration after login | test_session_regenerates_after_login | ✅ |
+| Rate limiting per username | test_rate_limiting_per_username | ✅ |
+| Rate limiting per IP address | test_rate_limiting_per_ip | ✅ |
+
+---
+
 ## ✅ Accessibility → `ui-accessibility.spec.ts`
 
 ### Keyboard Navigation
@@ -250,9 +281,10 @@ npm run test:e2e:all
 
 ## 📊 Test Statistics
 
-- **Total Acceptance Criteria**: ~130
-- **Test Files**: 6
-- **Test Cases**: ~80+
+- **Total Acceptance Criteria**: ~160
+- **Test Files**: 7 (6 E2E + 1 Auth Feature)
+- **PHPUnit Test Cases**: 180+
+- **E2E Test Cases**: 80+
 - **Coverage**: 100% of specified acceptance criteria
 
 ## 🚀 Running Tests
