@@ -50,15 +50,15 @@ jobs:
           # Create release notes
           RELEASE_NOTES="## Deployment to Production
           
-          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Commits:** $COMMIT_COUNT changes
-          **Period:** $START_DATE to $END_DATE
+          Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Commits: $COMMIT_COUNT changes
+          Period: $START_DATE to $END_DATE
           
-          ### Changes:
+          Changes:
           $COMMITS
           
-          **Deployed by:** ${{ github.actor }}
-          **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          Deployed by: ${{ github.actor }}
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           
           # Print release notes to CI/CD log
           echo "$RELEASE_NOTES"
