@@ -1,8 +1,8 @@
 # Expense Tracker - Architecture Blueprint
 
-> Generated: December 8, 2025  
-> Version: 1.0.0  
-> Tech Stack: Laravel 11 / PHP 8.4 / SQLite
+> Generated: December 30, 2025  
+> Version: 2.0.0  
+> Tech Stack: Laravel 11 / PHP 8.4 / SQLite / Session-Based Auth
 
 ---
 
@@ -13,6 +13,7 @@
 This application follows Laravel's standard **MVC architecture** with these key characteristics:
 
 - **Single Domain Model**: `Expense` is the sole business entity
+- **Session-Based Authentication**: Custom middleware with environment-based credentials
 - **Server-Side Rendering**: Blade templates with Material UI design
 - **Form Request Validation**: Dedicated request classes for input validation
 - **Soft Deletes**: Data preservation pattern for all deletions
@@ -411,12 +412,307 @@ public const CATEGORIES = [
 
 ---
 
-## 10. File Quick Reference
+## 10. Authentication System
+
+### Architecture Pattern
+
+**Session-based authentication** with custom middleware (no Eloquent User model)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Authentication Flow                       │
+│                                                             │
+│  User Login → AuthController → Validate Credentials        │
+│       ↓                              ↓                      │
+│  Rate Limiter Check         hash_equals() Check            │
+│       ↓                              ↓                      │
+│  Success: session(['authenticated' => true])               │
+│  Failure: Rate limit + error message                        │
+│                                                             │
+│  Protected Routes → Authenticate Middleware                 │
+│       ↓                              ↓                      │
+│  Check session('authenticated')                             │
+│       ↓                              ↓                      │
+│  Authenticated: Continue      Unauthenticated: Redirect     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+#### AuthController (`app/Http/Controllers/AuthController.php`)
+
+**Purpose**: Handle login/logout operations
+
+**Methods**:
+- `showLogin()` - Display login form
+- `login()` - Validate credentials and set session
+- `logout()` - Clear session and redirect
+
+**Security Features**:
+- Rate limiting (5 attempts per username, 10 per IP)
+- Timing-safe comparison with `hash_equals()`
+- Session regeneration after login
+- CSRF protection
+
+```php
+public function login(Request $request): RedirectResponse
+{
+    // Validate input
+    $validated = $request->validate([
+        'username' => 'required|string',
+        'password' => 'required|string',
+    ]);
+
+    // Rate limiting checks
+    $userKey = "login-user:{$validated['username']}";
+    $ipKey = "login-ip:{$request->ip()}";
+    
+    // Timing-safe credential validation
+    $validUsername = hash_equals(
+        env('AUTH_USERNAME', ''),
+        $validated['username']
+    );
+    $validPassword = hash_equals(
+        env('PASSWORD_HASH', ''),
+        $validated['password']
+    );
+    
+    if ($validUsername && $validPassword) {
+        RateLimiter::clear($userKey);
+        RateLimiter::clear($ipKey);
+        $request->session()->regenerate();
+        $request->session()->put('authenticated', true);
+        return redirect()->intended('/expenses');
+    }
+    
+    // Record failed attempt
+    RateLimiter::hit($userKey, 15 * 60);
+    RateLimiter::hit($ipKey, 15 * 60);
+    
+    return back()->withErrors([
+        'username' => 'Invalid credentials.'
+    ]);
+}
+```
+
+#### Authenticate Middleware (`app/Http/Middleware/Authenticate.php`)
+
+**Purpose**: Protect routes from unauthenticated access
+
+**Implementation**:
+```php
+public function handle(Request $request, Closure $next): Response
+{
+    if ($request->session()->get('authenticated') !== true) {
+        return redirect()->route('login');
+    }
+    
+    return $next($request);
+}
+```
+
+**Registration** (`bootstrap/app.php`):
+```php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'auth.custom' => \App\Http\Middleware\Authenticate::class,
+    ]);
+})
+```
+
+#### Custom Blade Directive
+
+**Registration** (`app/Providers/AppServiceProvider.php`):
+```php
+public function boot(): void
+{
+    Blade::if('auth', fn() => session('authenticated') === true);
+}
+```
+
+**Usage in views**:
+```blade
+@auth
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit">Logout</button>
+    </form>
+@endauth
+
+@guest
+    <a href="{{ route('login') }}">Login</a>
+@endguest
+```
+
+### Environment Configuration
+
+**Required variables** (`.env`):
+```env
+# Authentication credentials
+AUTH_USERNAME=your.email@example.com
+PASSWORD_HASH=$2y$12$your_bcrypt_hash_here
+
+# For E2E tests only
+TEST_PASSWORD=plain_text_password
+```
+
+**Generate password hash**:
+```bash
+php artisan tinker
+>>> echo Hash::make('your-password');
+```
+
+### Route Protection
+
+**Public routes** (no authentication):
+```php
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+```
+
+**Protected routes** (authentication required):
+```php
+Route::middleware(['auth.custom'])->group(function () {
+    Route::resource('expenses', ExpenseController::class);
+    Route::get('/expenses/daily', [ExpenseController::class, 'daily'])
+        ->name('expenses.daily');
+    Route::get('/expenses/monthly', [ExpenseController::class, 'monthly'])
+        ->name('expenses.monthly');
+});
+```
+
+### Testing Authentication
+
+**Feature Tests** (`tests/Feature/Auth/AuthenticationTest.php`):
+```php
+test('user can login with valid credentials', function () {
+    $response = $this->post('/login', [
+        'username' => config('auth.custom.username'),
+        'password' => env('TEST_PASSWORD'),
+    ]);
+    
+    $response->assertRedirect('/expenses');
+    expect(session('authenticated'))->toBeTrue();
+});
+```
+
+**E2E Tests** - Uses test-only endpoint:
+```typescript
+export async function login(page: Page) {
+  await page.goto('/test/auth');
+  await page.evaluate(() => {
+    sessionStorage.setItem('authenticated', 'true');
+  });
+  await page.goto('/expenses');
+}
+```
+
+### Security Considerations
+
+✅ **Timing-safe comparisons**: Use `hash_equals()` to prevent timing attacks  
+✅ **Rate limiting**: Dual limits (username + IP) prevent brute force  
+✅ **Session regeneration**: Prevents session fixation attacks  
+✅ **CSRF protection**: Automatic Laravel token validation  
+✅ **Environment variables**: Credentials never in source code  
+✅ **Bcrypt hashing**: Industry-standard password hashing  
+
+### Migration Path
+
+If multi-user functionality is needed:
+1. Create User model with Laravel Breeze/Fortify
+2. Update middleware to use `Auth::check()`
+3. Add user relationships to Expense model
+4. Update tests to use `actingAs($user)`
+
+Current implementation makes this migration straightforward - auth logic is isolated.
+
+---
+
+## 11. Deployment Configuration
+
+### Fly.io Setup
+
+**Dockerfile** (`Dockerfile`):
+- Multi-stage build with PHP 8.4-fpm-alpine
+- Composer dependencies installed
+- SQLite extension enabled
+- Proper file permissions for Laravel
+
+**Fly.toml Configuration**:
+```toml
+app = "your-app-name"
+primary_region = "fra"
+
+[build]
+
+[deploy]
+  release_command = "php /var/www/html/artisan migrate --force"
+
+[env]
+  APP_ENV = "production"
+  LOG_LEVEL = "info"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[mounts]
+  source = "data"
+  destination = "/var/www/html/database"
+```
+
+**Key Features**:
+- **Persistent Volume**: SQLite database stored on persistent volume
+- **Auto-scaling**: Machines start/stop based on traffic
+- **HTTPS**: Automatic SSL certificates
+- **Release Command**: Migrations run on every deploy
+
+### Environment Secrets
+
+Set via `flyctl secrets set`:
+```bash
+APP_KEY=base64:your-key-here
+APP_ENV=production
+APP_DEBUG=false
+AUTH_USERNAME=your.email@example.com
+PASSWORD_HASH='$2y$12$your_hash_here'
+SESSION_DRIVER=database
+```
+
+### Database Persistence
+
+**Volume Creation**:
+```bash
+flyctl volumes create data --region fra --size 1 -a your-app-name
+```
+
+**Mount Point**: `/var/www/html/database`  
+**Database File**: `database.sqlite`  
+**Migrations**: Run automatically on deploy via release command
+
+### Deployment Workflow
+
+1. **Initial Deploy**: `flyctl launch`
+2. **Create Volume**: `flyctl volumes create data`
+3. **Set Secrets**: `flyctl secrets set KEY=value`
+4. **Deploy App**: `flyctl deploy`
+5. **Monitor**: `flyctl logs`
+
+---
+
+## 12. File Quick Reference
 
 | Purpose | File Path |
 |---------|-----------|
 | Domain Model | `app/Models/Expense.php` |
-| Controller | `app/Http/Controllers/ExpenseController.php` |
+| Expense Controller | `app/Http/Controllers/ExpenseController.php` |
+| Auth Controller | `app/Http/Controllers/AuthController.php` |
+| Auth Middleware | `app/Http/Middleware/Authenticate.php` |
 | Store Validation | `app/Http/Requests/StoreExpenseRequest.php` |
 | Update Validation | `app/Http/Requests/UpdateExpenseRequest.php` |
 | Routes | `routes/web.php` |
@@ -425,10 +721,12 @@ public const CATEGORIES = [
 | Migration | `database/migrations/2025_12_02_215238_create_expenses_table.php` |
 | Factory | `database/factories/ExpenseFactory.php` |
 | Seeder | `database/seeders/ExpenseSeeder.php` |
-| Feature Tests | `tests/Feature/ExpenseControllerTest.php` |
-| CI/CD | `.github/workflows/laravel.yml` |
+| Expense Feature Tests | `tests/Feature/ExpenseControllerTest.php` |
+| Auth Feature Tests | `tests/Feature/Auth/AuthenticationTest.php` |
+| CI/CD | `.github/workflows/laravel-quality-gates.yml` |
+| Deployment | `Dockerfile`, `fly.toml` |
 | CSS | `public/css/app.css` |
 
 ---
 
-*This blueprint reflects the architecture as of December 2025. Update when significant structural changes occur.*
+*This blueprint reflects the architecture as of December 30, 2025. Update when significant structural changes occur.*
