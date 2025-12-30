@@ -60,14 +60,8 @@ jobs:
           **Deployed by:** ${{ github.actor }}
           **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           
-          # Save to file for artifact
-          echo "$RELEASE_NOTES" > release-notes.md
-          
-          # Escape for JSON and save to output
-          RELEASE_NOTES_JSON=$(echo "$RELEASE_NOTES" | jq -Rs .)
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Print release notes to CI/CD log
+          echo "$RELEASE_NOTES"
 
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -86,43 +80,3 @@ jobs:
           TAG_NAME="deploy-$(date -u +%Y%m%d-%H%M%S)"
           git tag -a "$TAG_NAME" -m "Deployment on $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
           git push origin "$TAG_NAME"
-
-      - name: Send Release Notes via Resend
-        if: success()
-        run: |
-          RELEASE_NOTES=$(cat release-notes.md)
-          
-          # Convert markdown to HTML for email
-          HTML_CONTENT=$(echo "$RELEASE_NOTES" | sed 's/^## \(.*\)/<h2>\1<\/h2>/' | \
-                         sed 's/^### \(.*\)/<h3>\1<\/h3>/' | \
-                         sed 's/^\*\*\(.*\):\*\* \(.*\)/<p><strong>\1:<\/strong> \2<\/p>/' | \
-                         sed 's/^- \(.*\)/<li>\1<\/li>/' | \
-                         sed ':a;N;$!ba;s/<li>\(.*\)<\/li>\n<li>/<li>\1<\/li><li>/g' | \
-                         sed 's/<li>\(.*\)<\/li>/<ul><li>\1<\/li><\/ul>/')
-          
-          # Create JSON payload
-          JSON_PAYLOAD=$(jq -n \
-            --arg from "${{ secrets.RESEND_FROM_EMAIL }}" \
-            --arg to "${{ secrets.RESEND_TO_EMAIL }}" \
-            --arg subject "🚀 Deployment to Production - $(date -u +"%Y-%m-%d %H:%M UTC")" \
-            --arg html "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>$HTML_CONTENT</body></html>" \
-            '{
-              from: $from,
-              to: [$to],
-              subject: $subject,
-              html: $html
-            }')
-          
-          # Send email via Resend API
-          curl -X POST https://api.resend.com/emails \
-            -H "Authorization: Bearer ${{ secrets.RESEND_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$JSON_PAYLOAD"
-
-      - name: Upload Release Notes
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: release-notes.md
-          retention-days: 30
