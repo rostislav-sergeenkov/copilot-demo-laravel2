@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS URLs in production (works with TrustProxies middleware)
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         // Validate required authentication environment variables
         // Skip validation during console commands (composer install, artisan commands, etc.)
         if (! $this->app->runningInConsole()) {
