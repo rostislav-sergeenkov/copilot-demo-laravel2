@@ -5,14 +5,24 @@
 # Check if we're using SQLite and the database doesn't exist
 if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
     DB_PATH="/var/www/html/storage/database/database.sqlite"
+    DB_DIR="/var/www/html/storage/database"
     
     # Create database directory if it doesn't exist
-    mkdir -p /var/www/html/storage/database
+    mkdir -p "$DB_DIR"
+    
+    # Ensure www-data owns the directory and can write to it
+    chown -R www-data:www-data "$DB_DIR"
+    chmod -R 775 "$DB_DIR"
     
     # Create database file if it doesn't exist
     if [ ! -f "$DB_PATH" ]; then
         echo "Creating SQLite database at $DB_PATH"
         touch "$DB_PATH"
+        chown www-data:www-data "$DB_PATH"
+        chmod 664 "$DB_PATH"
+    else
+        echo "SQLite database already exists at $DB_PATH"
+        # Ensure existing database has correct permissions
         chown www-data:www-data "$DB_PATH"
         chmod 664 "$DB_PATH"
     fi
